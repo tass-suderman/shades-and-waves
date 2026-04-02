@@ -56,6 +56,8 @@ export function useWebGL(
   const rafRef = useRef<number>(0)
   const startTimeRef = useRef<number>(Date.now())
   const frameRef = useRef<number>(0)
+  // Track elapsed time at pause so resuming doesn't jump
+  const elapsedAtPauseRef = useRef<number>(0)
   const mouseRef = useRef<[number, number, number, number]>([0, 0, 0, 0])
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const textureRef = useRef<WebGLTexture | null>(null)
@@ -152,16 +154,18 @@ export function useWebGL(
       audioCtxRef.current = audioCtx
     } else {
       if (audioCtxRef.current) {
-        audioCtxRef.current.close()
+        const ctx = audioCtxRef.current
         audioCtxRef.current = null
         analyserRef.current = null
+        ctx.close().catch(console.error)
       }
     }
     return () => {
       if (audioCtxRef.current) {
-        audioCtxRef.current.close()
+        const ctx = audioCtxRef.current
         audioCtxRef.current = null
         analyserRef.current = null
+        ctx.close().catch(console.error)
       }
     }
   }, [micEnabled, mediaStream])
@@ -191,11 +195,14 @@ export function useWebGL(
   // Render loop
   useEffect(() => {
     if (!isPlaying) {
+      // Save elapsed time so we can resume from the right point
+      elapsedAtPauseRef.current = (Date.now() - startTimeRef.current) / 1000
       cancelAnimationFrame(rafRef.current)
       return
     }
 
-    startTimeRef.current = Date.now() - (frameRef.current / 60) * 1000
+    // Resume: set startTime so that elapsed time continues from where we paused
+    startTimeRef.current = Date.now() - elapsedAtPauseRef.current * 1000
 
     const render = () => {
       const gl = glRef.current

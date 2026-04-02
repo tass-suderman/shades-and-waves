@@ -23,6 +23,12 @@ export default function App() {
       }
       setWebcamEnabled(false)
     } else {
+      // Stop any existing stream (e.g. mic) before requesting webcam
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(t => t.stop())
+        setMediaStream(null)
+      }
+      setMicEnabled(false)
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true })
         setMediaStream(stream)
@@ -31,7 +37,7 @@ export default function App() {
         console.error('Failed to get webcam:', e)
       }
     }
-  }, [webcamEnabled, mediaStream])
+  }, [webcamEnabled, micEnabled, mediaStream])
 
   const handleToggleMic = useCallback(async () => {
     if (micEnabled) {
@@ -41,6 +47,12 @@ export default function App() {
       }
       setMicEnabled(false)
     } else {
+      // Stop any existing stream (e.g. webcam) before requesting mic
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(t => t.stop())
+        setMediaStream(null)
+      }
+      setWebcamEnabled(false)
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
         setMediaStream(stream)
@@ -49,7 +61,7 @@ export default function App() {
         console.error('Failed to get mic:', e)
       }
     }
-  }, [micEnabled, mediaStream])
+  }, [micEnabled, webcamEnabled, mediaStream])
 
   return (
     <Box sx={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', bgcolor: '#1a1a2e' }}>

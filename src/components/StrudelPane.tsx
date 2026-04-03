@@ -11,8 +11,23 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import { StrudelMirror } from '@strudel/codemirror'
 import { prebake } from '@strudel/repl'
-import { webaudioOutput, getAudioContext, initAudioOnFirstClick, getSuperdoughAudioController } from '@strudel/webaudio'
+import { webaudioOutput, getAudioContext, initAudioOnFirstClick, getSuperdoughAudioController, registerSynthSounds, registerZZFXSounds } from '@strudel/webaudio'
 import { transpiler } from '@strudel/transpiler'
+
+// Minimal prebake: first registers built-in oscillator sounds synchronously
+// (sawtooth, sine, square, triangle, etc.), then runs the full prebake which
+// loads evalScope globals and optional remote sample banks.  Any failure in
+// remote sample loading is caught so the prebake promise never rejects –
+// built-in oscillators will always work, even offline.
+const minimalPrebake = async (): Promise<void> => {
+  registerSynthSounds()
+  registerZZFXSounds()
+  try {
+    await prebake()
+  } catch {
+    console.warn('[strudel] Remote sample loading failed – only built-in oscillator sounds are available.')
+  }
+}
 
 const DEFAULT_STRUDEL_CODE = `// Strudel live-coding pattern
 // Alt+Enter to play/pause, Ctrl+. to stop
@@ -62,7 +77,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
     const mirror = new StrudelMirror({
       root: rootRef.current,
       initialCode: DEFAULT_STRUDEL_CODE,
-      prebake,
+      prebake: minimalPrebake,
       defaultOutput: webaudioOutput,
       getTime: () => getAudioContext()?.currentTime ?? 0,
       transpiler,

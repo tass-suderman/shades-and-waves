@@ -42,4 +42,26 @@ declare module '@strudel/webaudio' {
   export function getSuperdoughAudioController(): {
     output: { destinationGain: GainNode }
   } | null
+  export function registerSynthSounds(): void
+  export function registerZZFXSounds(): void
+}
+
+declare module '@strudel/repl' {
+  export function prebake(): Promise<void>
+}
+
+declare module '@strudel/transpiler' {
+  const transpiler: unknown
+  export { transpiler }
+}
+
+declare module '@strudel/webaudio' {
+  export const webaudioOutput: unknown
+  export function getAudioContext(): AudioContext
+  export function initAudioOnFirstClick(): void
+  export function getSuperdoughAudioController(): {
+    output: { destinationGain: GainNode }
+  } | null
+  export function registerSynthSounds(): void
+  export function registerZZFXSounds(): void
 }

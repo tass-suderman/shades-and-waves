@@ -33,6 +33,8 @@ vi.mock('@strudel/webaudio', () => ({
   getAudioContext: vi.fn(() => null),
   initAudioOnFirstClick: vi.fn(),
   getSuperdoughAudioController: vi.fn(() => null),
+  registerSynthSounds: vi.fn(),
+  registerZZFXSounds: vi.fn(),
 }))
 
 // ---------------------------------------------------------------------------

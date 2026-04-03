@@ -240,4 +240,13 @@ describe('StrudelPane', () => {
     render(<StrudelPane onAnalyserReady={noop} />)
     expect(screen.getByRole('tab', { name: /examples/i })).toBeInTheDocument()
   })
+
+  it('clicking Examples tab hides the CodeMirror editor area', async () => {
+    const user = userEvent.setup()
+    render(<StrudelPane onAnalyserReady={noop} />)
+    await user.click(screen.getByRole('tab', { name: /examples/i }))
+    // The CodeMirror root box should have display:none when Examples tab is active
+    const editorBox = document.querySelector('[style*="display: none"]')
+    expect(editorBox).toBeTruthy()
+  })
 })

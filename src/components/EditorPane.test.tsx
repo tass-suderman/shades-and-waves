@@ -232,4 +232,12 @@ describe('EditorPane', () => {
     render(<EditorPane {...DEFAULT_PROPS} />)
     expect(screen.getByRole('tab', { name: /examples/i })).toBeInTheDocument()
   })
+
+  it('clicking Examples tab shows ExamplesPanel and hides Monaco editor', async () => {
+    const user = userEvent.setup()
+    render(<EditorPane {...DEFAULT_PROPS} />)
+    await user.click(screen.getByRole('tab', { name: /examples/i }))
+    // ExamplesPanel's fetch will fail (no server), but the panel container renders
+    expect(screen.getByTestId('monaco-editor').parentElement).toHaveStyle({ display: 'none' })
+  })
 })

@@ -147,6 +147,8 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
         destinationNodeRef.current = null
         onAudioStreamReadyRef.current?.(null)
       }
+      mirror.clear()
+      mirror.editor.destroy()
       mirror.stop().catch(console.error)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

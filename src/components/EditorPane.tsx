@@ -253,12 +253,12 @@ export default function EditorPane({ initialCode, onRun, pendingSource, onCodeCh
 
         {/* Import / Export buttons */}
         <Tooltip title="Import shader from file">
-          <IconButton size="small" onClick={handleImportClick} sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={handleImportClick} aria-label="Import shader from file" sx={{ color: 'rgba(255,255,255,0.7)' }}>
             <FileUploadIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Export shader to file">
-          <IconButton size="small" onClick={handleExport} sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={handleExport} aria-label="Export shader to file" sx={{ color: 'rgba(255,255,255,0.7)' }}>
             <FileDownloadIcon fontSize="small" />
           </IconButton>
         </Tooltip>

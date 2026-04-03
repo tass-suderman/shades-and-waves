@@ -11,12 +11,17 @@ declare module '@strudel/codemirror' {
   }
   export class StrudelMirror {
     constructor(options: StrudelMirrorOptions)
-    evaluate(): Promise<void>
-    stop(): Promise<void>
-    view: {
+    /** Current code string – updated on every keystroke */
+    code: string
+    /** Underlying CodeMirror EditorView */
+    editor: {
       state: { doc: { toString(): string; length: number } }
       dispatch(tr: { changes?: { from: number; to?: number; insert?: string } }): void
     }
+    evaluate(): Promise<void>
+    stop(): Promise<void>
+    /** Replace the full editor content with the given string */
+    setCode(code: string): void
   }
   export const codemirrorSettings: { get: () => Record<string, unknown> }
 }

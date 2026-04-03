@@ -103,7 +103,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   }, [])
 
   const handleExport = useCallback(() => {
-    const code = mirrorRef.current?.view.state.doc.toString() ?? DEFAULT_STRUDEL_CODE
+    const code = mirrorRef.current?.code ?? DEFAULT_STRUDEL_CODE
     const blob = new Blob([code], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -131,10 +131,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
     reader.onload = (evt) => {
       const content = evt.target?.result as string
       if (content !== undefined && mirrorRef.current) {
-        const view = mirrorRef.current.view
-        view.dispatch({
-          changes: { from: 0, to: view.state.doc.length, insert: content },
-        })
+        mirrorRef.current.setCode(content)
         const name = file.name.replace(/\.[^.]+$/, '')
         setStrudelTitle(name)
       }
@@ -176,12 +173,12 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
 
         {/* Import / Export buttons */}
         <Tooltip title="Import pattern from file">
-          <IconButton size="small" onClick={handleImportClick} sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={handleImportClick} aria-label="Import pattern from file" sx={{ color: 'rgba(255,255,255,0.7)' }}>
             <FileUploadIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Export pattern to file">
-          <IconButton size="small" onClick={handleExport} sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={handleExport} aria-label="Export pattern to file" sx={{ color: 'rgba(255,255,255,0.7)' }}>
             <FileDownloadIcon fontSize="small" />
           </IconButton>
         </Tooltip>

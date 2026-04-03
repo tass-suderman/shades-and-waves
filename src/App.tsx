@@ -1,7 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import CodeIcon from '@mui/icons-material/Code'
 import ShaderPane from './components/ShaderPane'
 import EditorPane from './components/EditorPane'
 import StrudelPane, { type StrudelPaneHandle } from './components/StrudelPane'
@@ -231,7 +234,7 @@ export default function App() {
       {/* Right: editor panel */}
       <Box ref={rightPanelRef} sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
         {/* Tab bar */}
-        <Box sx={{ px: 1, py: 0.5, bgcolor: '#1e1e1e', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0, display: 'flex' }}>
+        <Box sx={{ px: 1, py: 0.5, bgcolor: '#1e1e1e', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
           <ToggleButtonGroup
             value={viewMode}
             exclusive
@@ -248,6 +251,19 @@ export default function App() {
               Split
             </ToggleButton>
           </ToggleButtonGroup>
+          <Tooltip title="View source (AGPL)">
+            <IconButton
+              component="a"
+              href="https://github.com/tass-suderman/webgl-shader-playground"
+              target="_blank"
+              rel="noopener noreferrer"
+              size="small"
+              sx={{ ml: 'auto', color: 'rgba(255,255,255,0.7)', '&:hover': { color: '#fff' } }}
+              aria-label="View source on GitHub"
+            >
+              <CodeIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
 
         {/* Editor area */}

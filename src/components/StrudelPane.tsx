@@ -20,6 +20,12 @@ import { prebake } from '@strudel/repl'
 import { webaudioOutput, getAudioContext, initAudioOnFirstClick, getSuperdoughAudioController, registerSynthSounds, registerZZFXSounds } from '@strudel/webaudio'
 import { transpiler } from '@strudel/transpiler'
 
+// @strudel/codemirror ships no TypeScript declarations; augment the methods we use
+type StrudelMirrorExt = StrudelMirror & {
+  changeSetting: (key: string, value: unknown) => void
+  setTheme: (name: string) => void
+}
+
 // Minimal prebake: first registers built-in oscillator sounds synchronously
 // (sawtooth, sine, square, triangle, etc.), then runs the full prebake which
 // loads evalScope globals and optional remote sample banks.  Any failure in
@@ -68,6 +74,12 @@ const SOUND_CATEGORIES = [
   },
 ] as const
 
+// Map app theme names to CodeMirror / Strudel editor themes
+function mapToStrudelTheme(themeName: string): string {
+  if (themeName === 'kanagawa') return 'tokyoNight'
+  return 'vscodeDark'
+}
+
 export interface StrudelPaneHandle {
   play: () => void
   pause: () => void
@@ -76,14 +88,16 @@ export interface StrudelPaneHandle {
 interface StrudelPaneProps {
   onAnalyserReady: (analyser: AnalyserNode | null) => void
   onAudioStreamReady?: (stream: MediaStream | null) => void
+  vimMode: boolean
+  themeName: string
 }
 
 const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function StrudelPane(
-  { onAnalyserReady, onAudioStreamReady },
+  { onAnalyserReady, onAudioStreamReady, vimMode, themeName },
   ref,
 ) {
   const rootRef = useRef<HTMLDivElement>(null)
-  const mirrorRef = useRef<StrudelMirror | null>(null)
+  const mirrorRef = useRef<StrudelMirrorExt | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
   const destinationNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null)
   /** Reference to the GainNode we connected our analyser/destination to, so we can remove those connections cleanly on stop */
@@ -101,6 +115,11 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   onAnalyserReadyRef.current = onAnalyserReady
   const onAudioStreamReadyRef = useRef(onAudioStreamReady)
   onAudioStreamReadyRef.current = onAudioStreamReady
+  // Keep latest props in refs so the mount effect can read them without re-running
+  const vimModeRef = useRef(vimMode)
+  vimModeRef.current = vimMode
+  const themeNameRef = useRef(themeName)
+  themeNameRef.current = themeName
 
   useImperativeHandle(ref, () => ({
     play() {
@@ -169,7 +188,10 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
         }
       },
     })
-    mirrorRef.current = mirror
+    mirrorRef.current = mirror as StrudelMirrorExt
+    // Apply initial keybindings and theme from current settings
+    mirrorRef.current.changeSetting('keybindings', vimModeRef.current ? 'vim' : 'codemirror')
+    mirrorRef.current.setTheme(mapToStrudelTheme(themeNameRef.current))
     return () => {
       if (analyserRef.current) {
         const dg = destinationGainRef.current
@@ -197,6 +219,16 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   const saveCode = useCallback(() => {
     localStorage.setItem(LS_STRUDEL_CODE, mirrorRef.current?.code ?? DEFAULT_STRUDEL_CODE)
   }, [])
+
+  // Apply vim/normal keybindings whenever the setting changes
+  useEffect(() => {
+    mirrorRef.current?.changeSetting('keybindings', vimMode ? 'vim' : 'codemirror')
+  }, [vimMode])
+
+  // Apply the CodeMirror theme whenever the app theme changes
+  useEffect(() => {
+    mirrorRef.current?.setTheme(mapToStrudelTheme(themeName))
+  }, [themeName])
 
   // Persist the strudel code when the tab is hidden or the page is unloaded
   useEffect(() => {
@@ -270,7 +302,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   }, [])
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: '#1e1e1e' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'var(--pg-bg-panel)' }}>
       {/* Header */}
       <Box
         sx={{
@@ -279,8 +311,8 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
           justifyContent: 'space-between',
           px: 2,
           py: 1,
-          bgcolor: '#252526',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          bgcolor: 'var(--pg-bg-header)',
+          borderBottom: '1px solid var(--pg-border-subtle)',
           flexShrink: 0,
           gap: 1,
         }}
@@ -291,7 +323,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
           onChange={handleTitleChange}
           inputProps={{ 'aria-label': 'Strudel pattern title' }}
           sx={{
-            color: 'rgba(255,255,255,0.7)',
+            color: 'var(--pg-text-primary)',
             fontFamily: 'monospace',
             fontSize: '0.875rem',
             flex: 1,
@@ -301,22 +333,22 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
         />
 
         <Tooltip title="Import pattern from file">
-          <IconButton size="small" onClick={handleImportClick} aria-label="Import pattern from file" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={handleImportClick} aria-label="Import pattern from file" sx={{ color: 'var(--pg-text-primary)' }}>
             <FileUploadIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Export pattern to file">
-          <IconButton size="small" onClick={handleExport} aria-label="Export pattern to file" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={handleExport} aria-label="Export pattern to file" sx={{ color: 'var(--pg-text-primary)' }}>
             <FileDownloadIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Available sounds">
-          <IconButton size="small" onClick={() => setSoundsOpen(true)} aria-label="Available sounds" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={() => setSoundsOpen(true)} aria-label="Available sounds" sx={{ color: 'var(--pg-text-primary)' }}>
             <MusicNoteIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Reset to default pattern">
-          <IconButton size="small" onClick={handleReset} aria-label="Reset to default pattern" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={handleReset} aria-label="Reset to default pattern" sx={{ color: 'var(--pg-text-primary)' }}>
             <RestartAltIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -349,12 +381,12 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
         sx={{
           px: 2,
           py: 0.5,
-          bgcolor: '#252526',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          bgcolor: 'var(--pg-bg-header)',
+          borderBottom: '1px solid var(--pg-border-faint)',
           flexShrink: 0,
         }}
       >
-        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>
+        <Typography variant="caption" sx={{ color: 'var(--pg-text-muted)', fontFamily: 'monospace' }}>
           Alt+Enter to play · Alt+. to pause
         </Typography>
       </Box>
@@ -385,20 +417,20 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
         onClose={() => setSoundsOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { bgcolor: '#1e1e1e', color: '#fff' } }}
+        PaperProps={{ sx: { bgcolor: 'var(--pg-bg-panel)', color: 'var(--pg-text-primary)' } }}
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
           <Typography variant="h6" sx={{ fontFamily: 'monospace', fontSize: '1rem' }}>
             Available Sounds
           </Typography>
-          <IconButton size="small" onClick={() => setSoundsOpen(false)} aria-label="Close sounds dialog" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={() => setSoundsOpen(false)} aria-label="Close sounds dialog" sx={{ color: 'var(--pg-text-primary)' }}>
             <CloseIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 0 }}>
           {SOUND_CATEGORIES.map(cat => (
             <Box key={cat.label} sx={{ mb: 2 }}>
-              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <Typography variant="caption" sx={{ color: 'var(--pg-text-muted)', fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 {cat.label}
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
@@ -406,20 +438,20 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
                   <Typography
                     key={s}
                     component="code"
-                    sx={{ bgcolor: '#2d2d2d', px: 0.75, py: 0.25, borderRadius: 0.5, fontSize: '0.8rem', fontFamily: 'monospace', color: '#9cdcfe' }}
+                    sx={{ bgcolor: 'var(--pg-bg-button)', px: 0.75, py: 0.25, borderRadius: 0.5, fontSize: '0.8rem', fontFamily: 'monospace', color: '#9cdcfe' }}
                   >
                     {s}
                   </Typography>
                 ))}
               </Box>
               {'aliases' in cat && Object.keys(cat.aliases).length > 0 && (
-                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', display: 'block', mt: 0.5 }}>
+                <Typography variant="caption" sx={{ color: 'var(--pg-text-muted)', fontFamily: 'monospace', display: 'block', mt: 0.5 }}>
                   Aliases: {Object.entries(cat.aliases).map(([a, b]) => `${a} → ${b}`).join(', ')}
                 </Typography>
               )}
             </Box>
           ))}
-          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace', display: 'block', mt: 1 }}>
+          <Typography variant="caption" sx={{ color: 'var(--pg-text-muted)', fontFamily: 'monospace', display: 'block', mt: 1 }}>
             Use with <code style={{ color: '#9cdcfe' }}>.sound("name")</code> in your pattern.
           </Typography>
         </DialogContent>

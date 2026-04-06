@@ -88,14 +88,14 @@ describe('StrudelPane', () => {
   })
 
   it('renders the default title', () => {
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     const input = screen.getByRole('textbox', { name: /strudel pattern title/i })
     expect(input).toHaveValue('Strudel Pattern')
   })
 
   it('title input is editable', async () => {
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     const input = screen.getByRole('textbox', { name: /strudel pattern title/i })
     await user.clear(input)
     await user.type(input, 'My Beat')
@@ -104,7 +104,7 @@ describe('StrudelPane', () => {
 
   it('export button triggers a download with the current title as filename', async () => {
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     const { appendSpy } = mockDownload()
     await user.click(screen.getByRole('button', { name: /export pattern to file/i }))
     const anchor = appendSpy.mock.calls[0]?.[0] as HTMLAnchorElement | undefined
@@ -116,7 +116,7 @@ describe('StrudelPane', () => {
 
   it('export button uses updated title when title has been changed', async () => {
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     const input = screen.getByRole('textbox', { name: /strudel pattern title/i })
     await user.clear(input)
     await user.type(input, 'Groove Pattern')
@@ -128,7 +128,7 @@ describe('StrudelPane', () => {
 
   it('export sanitizes special chars in title', async () => {
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     const input = screen.getByRole('textbox', { name: /strudel pattern title/i })
     await user.clear(input)
     await user.type(input, 'Hello/World:Test')
@@ -149,7 +149,7 @@ describe('StrudelPane', () => {
     } as unknown as typeof Blob)
     activeSpies.push(blobSpy)
 
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     mockDownload()
     await user.click(screen.getByRole('button', { name: /export pattern to file/i }))
     expect(blobSpy).toHaveBeenCalledWith(
@@ -161,14 +161,14 @@ describe('StrudelPane', () => {
   it('import button triggers the hidden file input click', async () => {
     const inputClickSpy = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {})
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     await user.click(screen.getByRole('button', { name: /import pattern from file/i }))
     expect(inputClickSpy).toHaveBeenCalled()
     inputClickSpy.mockRestore()
   })
 
   it('importing a file sets the title from the filename', async () => {
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     const file = new File(['note("e4").sound("piano")'], 'my-groove.strudel', { type: 'text/plain' })
     // Provide a real FileReader so onload fires
@@ -182,7 +182,7 @@ describe('StrudelPane', () => {
   })
 
   it('importing a file calls setCode on the mirror with file content', async () => {
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     const code = 'note("g4 a4").sound("piano")'
     const file = new File([code], 'pattern.strudel', { type: 'text/plain' })
@@ -195,13 +195,13 @@ describe('StrudelPane', () => {
 
   it('play button calls mirror.evaluate()', async () => {
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     await user.click(screen.getByRole('button', { name: /play strudel/i }))
     expect(mockEvaluate).toHaveBeenCalled()
   })
 
   it('stop button is disabled when not playing', () => {
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     expect(screen.getByRole('button', { name: /stop/i })).toBeDisabled()
   })
 
@@ -211,7 +211,7 @@ describe('StrudelPane', () => {
 
   it('saves title to localStorage when title changes', async () => {
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     const input = screen.getByRole('textbox', { name: /strudel pattern title/i })
     await user.clear(input)
     await user.type(input, 'My Beat')
@@ -220,14 +220,14 @@ describe('StrudelPane', () => {
 
   it('loads initial title from localStorage on mount', () => {
     localStorage.setItem('shader-playground:strudel-title', 'Saved Pattern')
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     expect(screen.getByRole('textbox', { name: /strudel pattern title/i })).toHaveValue('Saved Pattern')
   })
 
   it('saves code to localStorage when play button is clicked', async () => {
     mockMirror.code = 'note("e4").sound("sine")'
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     await user.click(screen.getByRole('button', { name: /play strudel/i }))
     expect(localStorage.getItem('shader-playground:strudel-code')).toBe('note("e4").sound("sine")')
   })
@@ -237,13 +237,13 @@ describe('StrudelPane', () => {
   // ---------------------------------------------------------------------------
 
   it('reset button is present in the header', () => {
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     expect(screen.getByRole('button', { name: /reset to default pattern/i })).toBeInTheDocument()
   })
 
   it('reset button restores the default title', async () => {
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     const input = screen.getByRole('textbox', { name: /strudel pattern title/i })
     await user.clear(input)
     await user.type(input, 'Custom Beat')
@@ -253,7 +253,7 @@ describe('StrudelPane', () => {
 
   it('reset button calls mirror.setCode with the default strudel code', async () => {
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane onAnalyserReady={noop} vimMode={false} themeName="kanagawa" />)
     await user.click(screen.getByRole('button', { name: /reset to default pattern/i }))
     expect(mockSetCode).toHaveBeenCalledWith(expect.stringContaining('note("c3 [e3 g3] b3 [g3 e3]")'))
   })

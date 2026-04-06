@@ -77,6 +77,7 @@ const DEFAULT_PROPS = {
   onCodeChange: vi.fn(),
   shaderError: null,
   vimMode: false,
+  themeName: 'kanagawa',
 }
 
 // ---------------------------------------------------------------------------

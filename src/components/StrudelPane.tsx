@@ -20,6 +20,12 @@ import { prebake } from '@strudel/repl'
 import { webaudioOutput, getAudioContext, initAudioOnFirstClick, getSuperdoughAudioController, registerSynthSounds, registerZZFXSounds } from '@strudel/webaudio'
 import { transpiler } from '@strudel/transpiler'
 
+// @strudel/codemirror ships no TypeScript declarations; augment the methods we use
+type StrudelMirrorExt = StrudelMirror & {
+  changeSetting: (key: string, value: unknown) => void
+  setTheme: (name: string) => void
+}
+
 // Minimal prebake: first registers built-in oscillator sounds synchronously
 // (sawtooth, sine, square, triangle, etc.), then runs the full prebake which
 // loads evalScope globals and optional remote sample banks.  Any failure in
@@ -68,6 +74,12 @@ const SOUND_CATEGORIES = [
   },
 ] as const
 
+// Map app theme names to CodeMirror / Strudel editor themes
+function mapToStrudelTheme(themeName: string): string {
+  if (themeName === 'kanagawa') return 'tokyoNight'
+  return 'vscodeDark'
+}
+
 export interface StrudelPaneHandle {
   play: () => void
   pause: () => void
@@ -76,14 +88,16 @@ export interface StrudelPaneHandle {
 interface StrudelPaneProps {
   onAnalyserReady: (analyser: AnalyserNode | null) => void
   onAudioStreamReady?: (stream: MediaStream | null) => void
+  vimMode: boolean
+  themeName: string
 }
 
 const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function StrudelPane(
-  { onAnalyserReady, onAudioStreamReady },
+  { onAnalyserReady, onAudioStreamReady, vimMode, themeName },
   ref,
 ) {
   const rootRef = useRef<HTMLDivElement>(null)
-  const mirrorRef = useRef<StrudelMirror | null>(null)
+  const mirrorRef = useRef<StrudelMirrorExt | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
   const destinationNodeRef = useRef<MediaStreamAudioDestinationNode | null>(null)
   /** Reference to the GainNode we connected our analyser/destination to, so we can remove those connections cleanly on stop */
@@ -101,6 +115,11 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   onAnalyserReadyRef.current = onAnalyserReady
   const onAudioStreamReadyRef = useRef(onAudioStreamReady)
   onAudioStreamReadyRef.current = onAudioStreamReady
+  // Keep latest props in refs so the mount effect can read them without re-running
+  const vimModeRef = useRef(vimMode)
+  vimModeRef.current = vimMode
+  const themeNameRef = useRef(themeName)
+  themeNameRef.current = themeName
 
   useImperativeHandle(ref, () => ({
     play() {
@@ -169,7 +188,10 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
         }
       },
     })
-    mirrorRef.current = mirror
+    mirrorRef.current = mirror as StrudelMirrorExt
+    // Apply initial keybindings and theme from current settings
+    mirrorRef.current.changeSetting('keybindings', vimModeRef.current ? 'vim' : 'codemirror')
+    mirrorRef.current.setTheme(mapToStrudelTheme(themeNameRef.current))
     return () => {
       if (analyserRef.current) {
         const dg = destinationGainRef.current
@@ -197,6 +219,16 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   const saveCode = useCallback(() => {
     localStorage.setItem(LS_STRUDEL_CODE, mirrorRef.current?.code ?? DEFAULT_STRUDEL_CODE)
   }, [])
+
+  // Apply vim/normal keybindings whenever the setting changes
+  useEffect(() => {
+    mirrorRef.current?.changeSetting('keybindings', vimMode ? 'vim' : 'codemirror')
+  }, [vimMode])
+
+  // Apply the CodeMirror theme whenever the app theme changes
+  useEffect(() => {
+    mirrorRef.current?.setTheme(mapToStrudelTheme(themeName))
+  }, [themeName])
 
   // Persist the strudel code when the tab is hidden or the page is unloaded
   useEffect(() => {

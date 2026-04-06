@@ -352,6 +352,7 @@ export default function App() {
               onCodeChange={setPendingSource}
               shaderError={shaderError}
               vimMode={vimMode}
+              themeName={themeName}
             />
           </Box>
 
@@ -376,7 +377,7 @@ export default function App() {
             height: viewMode === 'split' ? `calc(${100 - splitRatio}% - 4px)` : '100%',
             minHeight: 0,
           }}>
-            <StrudelPane ref={strudelRef} onAnalyserReady={setStrudelAnalyser} onAudioStreamReady={setStrudelAudioStream} />
+            <StrudelPane ref={strudelRef} onAnalyserReady={setStrudelAnalyser} onAudioStreamReady={setStrudelAudioStream} vimMode={vimMode} themeName={themeName} />
           </Box>
         </Box>
       </Box>

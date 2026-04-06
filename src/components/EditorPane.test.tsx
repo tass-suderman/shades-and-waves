@@ -76,6 +76,7 @@ const DEFAULT_PROPS = {
   pendingSource: 'void main() {}',
   onCodeChange: vi.fn(),
   shaderError: null,
+  vimMode: false,
 }
 
 // ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
@@ -12,6 +12,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
+import { initVimMode } from 'monaco-vim'
 
 // ---------------------------------------------------------------------------
 // GLSL Monarch tokenizer – registered before the Monaco editor mounts
@@ -140,18 +141,41 @@ interface EditorPaneProps {
   pendingSource: string
   onCodeChange: (code: string) => void
   shaderError: string | null
+  vimMode: boolean
 }
 
-export default function EditorPane({ initialCode, onRun, pendingSource, onCodeChange, shaderError }: EditorPaneProps) {
+export default function EditorPane({ initialCode, onRun, pendingSource, onCodeChange, shaderError, vimMode }: EditorPaneProps) {
   const [shaderTitle, setShaderTitle] = useState(
     () => localStorage.getItem(LS_GLSL_TITLE) ?? DEFAULT_SHADER_TITLE,
   )
   const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const statusBarRef = useRef<HTMLDivElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vimModeInstanceRef = useRef<any>(null)
 
   // Keep a ref so Monaco keyboard shortcuts always call with latest pendingSource
   const pendingSourceRef = useRef(pendingSource)
   pendingSourceRef.current = pendingSource
+
+  // Enable / disable vim mode whenever the prop changes or the editor mounts
+  useEffect(() => {
+    const editor = editorRef.current
+    const statusBar = statusBarRef.current
+    if (!editor || !statusBar) return
+
+    if (vimMode) {
+      if (!vimModeInstanceRef.current) {
+        vimModeInstanceRef.current = initVimMode(editor, statusBar)
+      }
+    } else {
+      if (vimModeInstanceRef.current) {
+        vimModeInstanceRef.current.dispose()
+        vimModeInstanceRef.current = null
+        statusBar.textContent = ''
+      }
+    }
+  }, [vimMode])
 
   const handleRun = useCallback(() => {
     onRun(pendingSourceRef.current)
@@ -166,7 +190,18 @@ export default function EditorPane({ initialCode, onRun, pendingSource, onCodeCh
 
   const handleEditorMount = useCallback<OnMount>((editor) => {
     editorRef.current = editor
-  }, [])
+    // Initialize vim mode immediately if it is already enabled when the editor mounts
+    if (vimMode && statusBarRef.current && !vimModeInstanceRef.current) {
+      vimModeInstanceRef.current = initVimMode(editor, statusBarRef.current)
+    }
+    // Clean up vim mode when the editor is destroyed
+    editor.onDidDispose(() => {
+      if (vimModeInstanceRef.current) {
+        vimModeInstanceRef.current.dispose()
+        vimModeInstanceRef.current = null
+      }
+    })
+  }, [vimMode])
 
   // Monaco's onChange fires after its built-in debounce (~300 ms), so saving
   // directly here avoids extra debounce logic while keeping localStorage current.
@@ -243,7 +278,7 @@ export default function EditorPane({ initialCode, onRun, pendingSource, onCodeCh
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        bgcolor: '#1e1e1e',
+        bgcolor: 'var(--pg-bg-panel)',
       }}
     >
       {/* Header */}
@@ -254,8 +289,8 @@ export default function EditorPane({ initialCode, onRun, pendingSource, onCodeCh
           justifyContent: 'space-between',
           px: 2,
           py: 1,
-          bgcolor: '#252526',
-          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          bgcolor: 'var(--pg-bg-header)',
+          borderBottom: '1px solid var(--pg-border-subtle)',
           flexShrink: 0,
           gap: 1,
         }}
@@ -266,7 +301,7 @@ export default function EditorPane({ initialCode, onRun, pendingSource, onCodeCh
           onChange={handleTitleChange}
           inputProps={{ 'aria-label': 'Shader title' }}
           sx={{
-            color: 'rgba(255,255,255,0.7)',
+            color: 'var(--pg-text-primary)',
             fontFamily: 'monospace',
             fontSize: '0.875rem',
             flex: 1,
@@ -280,17 +315,17 @@ export default function EditorPane({ initialCode, onRun, pendingSource, onCodeCh
 
         {/* Import / Export / Reset buttons */}
         <Tooltip title="Import shader from file">
-          <IconButton size="small" onClick={handleImportClick} aria-label="Import shader from file" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={handleImportClick} aria-label="Import shader from file" sx={{ color: 'var(--pg-text-primary)' }}>
             <FileUploadIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Export shader to file">
-          <IconButton size="small" onClick={handleExport} aria-label="Export shader to file" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={handleExport} aria-label="Export shader to file" sx={{ color: 'var(--pg-text-primary)' }}>
             <FileDownloadIcon fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title="Reset to default shader">
-          <IconButton size="small" onClick={handleReset} aria-label="Reset to default shader" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+          <IconButton size="small" onClick={handleReset} aria-label="Reset to default shader" sx={{ color: 'var(--pg-text-primary)' }}>
             <RestartAltIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -308,8 +343,8 @@ export default function EditorPane({ initialCode, onRun, pendingSource, onCodeCh
       </Box>
 
       {/* Keyboard shortcut hint */}
-      <Box sx={{ px: 2, py: 0.5, bgcolor: '#252526', borderBottom: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}>
-        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.35)', fontFamily: 'monospace' }}>
+      <Box sx={{ px: 2, py: 0.5, bgcolor: 'var(--pg-bg-header)', borderBottom: '1px solid var(--pg-border-faint)', flexShrink: 0 }}>
+        <Typography variant="caption" sx={{ color: 'var(--pg-text-muted)', fontFamily: 'monospace' }}>
           Ctrl+Enter to run shader · Alt+Enter to play Strudel · Alt+. to pause
         </Typography>
       </Box>
@@ -363,6 +398,24 @@ export default function EditorPane({ initialCode, onRun, pendingSource, onCodeCh
           }}
         />
       </Box>
+
+      {/* Vim status bar – only shown when vim mode is active */}
+      <Box
+        ref={statusBarRef}
+        component="div"
+        sx={{
+          display: vimMode ? 'block' : 'none',
+          px: 1,
+          py: 0.25,
+          bgcolor: 'var(--pg-bg-header)',
+          color: 'var(--pg-text-primary)',
+          fontFamily: 'monospace',
+          fontSize: '0.8rem',
+          borderTop: '1px solid var(--pg-border-subtle)',
+          flexShrink: 0,
+          minHeight: '1.5rem',
+        }}
+      />
     </Box>
   )
 }

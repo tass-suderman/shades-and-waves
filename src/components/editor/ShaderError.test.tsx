@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import ShaderError from './ShaderError'
 
 describe('ShaderError', () => {
@@ -22,5 +23,18 @@ describe('ShaderError', () => {
     // Empty string is falsy – treat as no error
     const { container } = render(<ShaderError error={null} />)
     expect(container.firstChild).toBeNull()
+  })
+
+  it('renders a dismiss button when an error is shown', () => {
+    render(<ShaderError error="ERROR: something went wrong" />)
+    expect(screen.getByRole('button', { name: /dismiss errors/i })).toBeInTheDocument()
+  })
+
+  it('hides the error panel when the dismiss button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<ShaderError error="ERROR: something went wrong" />)
+    const dismissBtn = screen.getByRole('button', { name: /dismiss errors/i })
+    await user.click(dismissBtn)
+    expect(screen.queryByText(/something went wrong/i)).not.toBeInTheDocument()
   })
 })

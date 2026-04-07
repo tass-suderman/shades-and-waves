@@ -12,7 +12,6 @@ A browser-based creative coding playground that combines real-time GLSL fragment
 - **Strudel editor** — live-code music patterns using the Strudel mini-notation. Play with `Alt+Enter`, stop with `Alt+.`.
 - **Split view** — run both editors side-by-side with a draggable divider.
 - **Audio-reactive shaders** — shader uniforms (`u_fft`, `u_volume`, etc.) are fed from the Strudel audio output so visuals pulse with the music.
-- **Classic drum machines** — TR-808, TR-909, TR-606, TR-707, LM-1, DMX, and many more are available as sample banks (loaded automatically on first play).
 - **Webcam & mic input** — optionally pipe camera or microphone data into your shader.
 - **Import / export** — save and load shaders (`.glsl`) or Strudel patterns (`.strudel`).
 - **Multiple themes** — Kanagawa (default) and Dark.
@@ -30,22 +29,7 @@ A browser-based creative coding playground that combines real-time GLSL fragment
 5. **Split tab** — both editors are visible at once; drag the horizontal divider to resize.
 6. **Examples** — browse and load example shaders and patterns with a single click.
 7. **Settings** — switch themes and toggle Vim keybindings.
-8. The 🎵 icon in the Strudel header opens the *Available Sounds* panel, which lists all built-in oscillators, synths, noise types, and drum machine samples.
-
-### Drum machine samples
-
-Drum samples are fetched automatically from open-source sample libraries the first time you play a pattern that uses them. Use them like this:
-
-```js
-// TR-808 groove
-stack(
-  s("RolandTR808_bd ~ RolandTR808_bd ~"),
-  s("~ RolandTR808_sd ~ RolandTR808_sd"),
-  s("RolandTR808_hh*8")
-).cpm(120)
-```
-
-Other machines: `RolandTR909_*`, `RolandTR606_*`, `RolandTR707_*`, `LinnLM1_*`, `OberheimDMX_*`, `RolandR8_*`, `BossDR110_*`, and more. See the *Available Sounds* panel for the full list.
+8. The 🎵 icon in the Strudel header opens the *Available Sounds* panel, which lists all built-in oscillators, synths, and noise types.
 
 ---
 
@@ -85,7 +69,6 @@ pnpm test           # or: npm test
 | Graphics | WebGL (via a `<canvas>` managed directly) |
 | Build tool | [Vite](https://vitejs.dev) |
 | Testing | [Vitest](https://vitest.dev) + [Testing Library](https://testing-library.com) |
-| Drum samples | [tidal-drum-machines](https://github.com/ritchse/tidal-drum-machines) · [uzu-drumkit](https://github.com/tidalcycles/uzu-drumkit) |
 
 ---
 

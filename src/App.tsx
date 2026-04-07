@@ -44,8 +44,11 @@ const baseTabSx = {
 // Editor mode tabs (GLSL / Strudel / Split) – primary text colour
 const editorTabSx = { ...baseTabSx, color: 'var(--pg-text-button)' } as const
 
-// Utility tabs (Examples / Settings / Source) – muted text colour
-const utilTabSx = { ...baseTabSx, color: 'var(--pg-text-muted)' } as const
+// Utility tabs (Examples / Settings) – warm complementary text colour
+const utilTabSx = { ...baseTabSx, color: 'var(--pg-text-util-tab)' } as const
+
+// Source tab – a second warm complementary text colour
+const sourceTabSx = { ...baseTabSx, color: 'var(--pg-text-source-tab)' } as const
 
 export default function App() {
   const [shaderSource, setShaderSource] = useState<string>(initialShaderCode)
@@ -252,10 +255,10 @@ export default function App() {
             <ToggleButton
               value="source"
               component="a"
-              href="https://github.com/tass-suderman/webgl-shader-playground"
+              href="https://github.com/tass-suderman/shades-and-waves"
               target="_blank"
               rel="noopener noreferrer"
-              sx={utilTabSx}
+              sx={sourceTabSx}
             >
               Source
             </ToggleButton>

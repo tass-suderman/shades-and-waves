@@ -216,7 +216,10 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
     return () => document.removeEventListener('visibilitychange', onHide)
   }, [saveCode])
 
-  // Watch the rootRef for vim status changes emitted by @codemirror/vim's status panel
+// Vim mode indicators emitted by @replit/codemirror-vim in the status panel
+const VIM_MODE_INDICATORS = ['INSERT', 'NORMAL', 'VISUAL', 'REPLACE']
+
+// Watch the rootRef for vim status changes emitted by @codemirror/vim's status panel
   useEffect(() => {
     if (!vimMode || !rootRef.current) return
     const root = rootRef.current
@@ -227,7 +230,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
       let found = ''
       for (const el of panels) {
         const text = el.textContent?.trim() ?? ''
-        if (text && (text.includes('INSERT') || text.includes('NORMAL') || text.includes('VISUAL') || text.includes('REPLACE'))) {
+        if (text && VIM_MODE_INDICATORS.some(m => text.includes(m))) {
           found = text
           break
         }

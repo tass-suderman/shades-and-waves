@@ -3,8 +3,8 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Editor from '@monaco-editor/react'
 import type { OnMount, BeforeMount } from '@monaco-editor/react'
-import type { editor as MonacoEditorNS } from 'monaco-editor'
 import { initVimMode, type VimAdapterInstance } from 'monaco-vim'
+// import type { editor as MonacoEditorNS } from 'monaco-editor/editor'
 import ExamplesPanel from './ExamplesPanel'
 import EditorHeader from './editor/EditorHeader'
 import ShaderError from './editor/ShaderError'
@@ -32,7 +32,9 @@ export default function EditorPane({ initialCode, onRun, pendingSource, onCodeCh
     () => localStorage.getItem(LS_GLSL_TITLE) ?? DEFAULT_SHADER_TITLE,
   )
   const [activeTab, setActiveTab] = useState<'editor' | 'examples'>('editor')
-  const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null)
+  const editorRef = useRef<any>(null)
+	// TODO --> fix me
+  //const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null)
   const monacoRef = useRef<Parameters<BeforeMount>[0] | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const statusBarRef = useRef<HTMLDivElement>(null)

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 
 // ---------------------------------------------------------------------------
 // Mock the WebGL hook so canvas setup doesn't throw in jsdom
@@ -87,6 +86,8 @@ const DEFAULT_PROPS = {
   webcamEnabled: false,
   micEnabled: false,
   systemAudioEnabled: false,
+	vimMode: false,
+	themeName: 'kanagawa',
   onToggleWebcam: vi.fn(),
   onToggleMic: vi.fn(),
   onToggleSystemAudio: vi.fn(),

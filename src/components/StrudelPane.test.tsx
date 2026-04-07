@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 
 // ---------------------------------------------------------------------------
 // Module mocks – hoisted so they run before imports
@@ -241,13 +240,13 @@ describe('StrudelPane', () => {
   // ---------------------------------------------------------------------------
 
   it('Examples tab is present', () => {
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane vimMode={false} themeName="kanagawa" onAnalyserReady={noop} />)
     expect(screen.getByRole('tab', { name: /examples/i })).toBeInTheDocument()
   })
 
   it('clicking Examples tab hides the CodeMirror editor area', async () => {
     const user = userEvent.setup()
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane vimMode={false} themeName="kanagawa" onAnalyserReady={noop} />)
     await user.click(screen.getByRole('tab', { name: /examples/i }))
     // The CodeMirror root box should have display:none when Examples tab is active
     const editorBox = document.querySelector('[style*="display: none"]')
@@ -263,7 +262,7 @@ describe('StrudelPane', () => {
       }
       return Promise.resolve({ ok: true, json: () => Promise.resolve({ title: 'Melodic Arp', content: 'note("c3").sound("sawtooth")' }) } as Response)
     })
-    render(<StrudelPane onAnalyserReady={noop} />)
+    render(<StrudelPane vimMode={false} themeName="kanagawa" onAnalyserReady={noop} />)
     await user.click(screen.getByRole('tab', { name: /examples/i }))
     await waitFor(() => screen.getByText('Melodic Arp'))
     await user.click(screen.getByText('Melodic Arp'))

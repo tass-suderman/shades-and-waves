@@ -1,12 +1,22 @@
+import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
+import CloseIcon from '@mui/icons-material/Close'
 
 interface ShaderErrorProps {
   error: string | null
 }
 
 export default function ShaderError({ error }: ShaderErrorProps) {
-  if (!error) return null
+  const [dismissed, setDismissed] = useState(false)
+
+  // Show the panel again whenever a new (non-null) error arrives
+  useEffect(() => {
+    if (error) setDismissed(false)
+  }, [error])
+
+  if (!error || dismissed) return null
 
   return (
     <Box
@@ -16,11 +26,26 @@ export default function ShaderError({ error }: ShaderErrorProps) {
         bgcolor: '#5a0000',
         borderBottom: '1px solid #ff0000',
         flexShrink: 0,
+        position: 'relative',
       }}
     >
+      <IconButton
+        aria-label="Dismiss error"
+        onClick={() => setDismissed(true)}
+        size="small"
+        sx={{
+          position: 'absolute',
+          top: 4,
+          right: 4,
+          color: '#ff8080',
+          '&:hover': { color: '#ffffff' },
+        }}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
       <Typography
         variant="caption"
-        sx={{ color: '#ff8080', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}
+        sx={{ color: '#ff8080', fontFamily: 'monospace', whiteSpace: 'pre-wrap', pr: 3 }}
       >
         {error}
       </Typography>

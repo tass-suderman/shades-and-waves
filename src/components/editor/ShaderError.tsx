@@ -30,7 +30,7 @@ export default function ShaderError({ error }: ShaderErrorProps) {
       }}
     >
       <IconButton
-        aria-label="Dismiss errors"
+        aria-label="Dismiss error"
         onClick={() => setDismissed(true)}
         size="small"
         sx={{

@@ -263,7 +263,8 @@ export default function App() {
       >
         <ToggleButton value="glsl" sx={editorTabSx}>GLSL</ToggleButton>
         <ToggleButton value="strudel" sx={editorTabSx}>Strudel</ToggleButton>
-        {/* Split view is desktop-only */}
+        {/* Split view is desktop-only. The useEffect above also falls back from split
+            to glsl when switching to mobile mid-session (e.g., device rotation). */}
         {!isMobile && <ToggleButton value="split" sx={editorTabSx}>Split</ToggleButton>}
         <ToggleButton value="examples" sx={utilTabSx}>Examples</ToggleButton>
         <ToggleButton value="settings" sx={utilTabSx}>Settings</ToggleButton>

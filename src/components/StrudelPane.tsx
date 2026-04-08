@@ -91,7 +91,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
     () => localStorage.getItem(LS_STRUDEL_TITLE) ?? DEFAULT_STRUDEL_TITLE,
   )
   const [soundsOpen, setSoundsOpen] = useState(false)
-  /** Ratio (0–100) of the strudel-only sounds split: editor top / sounds bottom */
+  /** Ratio (20–80) of the strudel-only sounds split: editor top / sounds bottom */
   const [soundsSplitRatio, setSoundsSplitRatio] = useState(50)
   const soundsPaneRef = useRef<HTMLDivElement>(null)
   /** Most-recently seen error message – used to deduplicate identical errors */

@@ -9,14 +9,14 @@ interface StrudelErrorProps {
 }
 
 export default function StrudelError({ error }: StrudelErrorProps) {
-  const [dismissed, setDismissed] = useState(false)
+  const [isDismissed, setIsDismissed] = useState(false)
 
   // Re-show the panel whenever a new (non-null) error arrives
   useEffect(() => {
-    if (error) setDismissed(false)
+    if (error) setIsDismissed(false)
   }, [error])
 
-  if (!error || dismissed) return null
+  if (!error || isDismissed) return null
 
   return (
     <Box
@@ -31,7 +31,7 @@ export default function StrudelError({ error }: StrudelErrorProps) {
     >
       <IconButton
         aria-label="Dismiss error"
-        onClick={() => setDismissed(true)}
+        onClick={() => setIsDismissed(true)}
         size="small"
         sx={{
           position: 'absolute',

@@ -356,9 +356,13 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
 
       <StrudelError error={strudelError} />
 
-      {/* In split mode: sounds panel is shown above a hidden (but still mounted) editor.
-          Always keeping the editor Box in the DOM preserves the StrudelMirror instance. */}
-      {isSplit && soundsOpen && <SoundsPanel />}
+      {/* In split mode: sounds panel fills all remaining space; the editor is kept mounted
+          but hidden so StrudelMirror stays alive and can be restored when sounds closes. */}
+      {isSplit && soundsOpen && (
+        <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <SoundsPanel />
+        </Box>
+      )}
 
       {/* Strudel CodeMirror editor – always mounted so StrudelMirror stays alive.
           Hidden via display:none in split mode while the sounds panel is open. */}

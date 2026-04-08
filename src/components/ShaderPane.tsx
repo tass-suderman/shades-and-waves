@@ -35,6 +35,12 @@ interface ShaderPaneProps {
   onToggleMic: () => void
   onToggleSystemAudio: () => void
   onShaderError?: (error: string | null) => void
+  /** Whether the editor panel is currently collapsed */
+  editorCollapsed?: boolean
+  /** Callback to toggle editor collapse/expand */
+  onToggleEditorCollapsed?: () => void
+  /** True when on a narrow/mobile viewport */
+  isMobile?: boolean
 }
 
 export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane({
@@ -50,6 +56,9 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   onToggleMic,
   onToggleSystemAudio,
   onShaderError,
+  editorCollapsed,
+  onToggleEditorCollapsed,
+  isMobile,
 }: ShaderPaneProps, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -217,6 +226,9 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
         onStartRecording={handleStartRecording}
         onStopRecording={handleStopRecording}
         onToggleFullscreen={handleFullscreen}
+        editorCollapsed={editorCollapsed}
+        onToggleEditorCollapsed={onToggleEditorCollapsed}
+        isMobile={isMobile}
       />
     </Box>
   )

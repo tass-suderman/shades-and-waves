@@ -1,14 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import Tooltip from '@mui/material/Tooltip'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ShaderPane, { type ShaderPaneHandle } from './components/ShaderPane'
 import EditorPane, { type EditorPaneHandle } from './components/EditorPane'
 import StrudelPane, { type StrudelPaneHandle } from './components/StrudelPane'
@@ -257,6 +251,7 @@ export default function App() {
         onChange={(_e, val: string | null) => {
           if (!val) return
           setViewMode(val as ViewMode)
+          strudelRef.current?.closeSounds()
         }}
         size="small"
         sx={{ flex: 1, minWidth: 0 }}
@@ -270,21 +265,6 @@ export default function App() {
         <ToggleButton value="settings" sx={utilTabSx}>Settings</ToggleButton>
         <ToggleButton value="about" sx={aboutTabSx}>About</ToggleButton>
       </ToggleButtonGroup>
-
-      {/* Collapse / expand editor button */}
-      <Tooltip title={editorCollapsed ? 'Expand Editor' : 'Collapse Editor'}>
-        <IconButton
-          size="small"
-          onClick={() => setEditorCollapsed(c => !c)}
-          aria-label={editorCollapsed ? 'Expand Editor' : 'Collapse Editor'}
-          sx={{ color: 'var(--pg-text-button)', flexShrink: 0 }}
-        >
-          {isMobile
-            ? (editorCollapsed ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />)
-            : (editorCollapsed ? <ChevronRightIcon fontSize="small" /> : <ChevronLeftIcon fontSize="small" />)
-          }
-        </IconButton>
-      </Tooltip>
     </Box>
   )
 
@@ -392,6 +372,9 @@ export default function App() {
             onToggleMic={handleToggleMic}
             onToggleSystemAudio={handleToggleSystemAudio}
             onShaderError={setShaderError}
+            editorCollapsed={editorCollapsed}
+            onToggleEditorCollapsed={() => setEditorCollapsed(c => !c)}
+            isMobile={true}
           />
         </Box>
 
@@ -414,25 +397,6 @@ export default function App() {
           <Box ref={rightPanelRef} sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             {tabBar}
             {editorContent}
-          </Box>
-        )}
-
-        {/* When collapsed show a thin bar with the expand button */}
-        {editorCollapsed && (
-          <Box sx={{
-            px: 1,
-            py: 0.5,
-            bgcolor: 'var(--pg-bg-header)',
-            borderTop: '1px solid var(--pg-border-subtle)',
-            flexShrink: 0,
-            display: 'flex',
-            justifyContent: 'center',
-          }}>
-            <Tooltip title="Expand Editor">
-              <IconButton size="small" onClick={() => setEditorCollapsed(false)} aria-label="Expand Editor" sx={{ color: 'var(--pg-text-button)' }}>
-                <ExpandLessIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
           </Box>
         )}
       </Box>
@@ -458,6 +422,9 @@ export default function App() {
           onToggleMic={handleToggleMic}
           onToggleSystemAudio={handleToggleSystemAudio}
           onShaderError={setShaderError}
+          editorCollapsed={editorCollapsed}
+          onToggleEditorCollapsed={() => setEditorCollapsed(c => !c)}
+          isMobile={false}
         />
       </Box>
 
@@ -480,25 +447,6 @@ export default function App() {
         <Box ref={rightPanelRef} sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
           {tabBar}
           {editorContent}
-        </Box>
-      )}
-
-      {/* When collapsed show a thin bar with the expand button */}
-      {editorCollapsed && (
-        <Box sx={{
-          width: '28px',
-          bgcolor: 'var(--pg-bg-header)',
-          borderLeft: '1px solid var(--pg-border-subtle)',
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <Tooltip title="Expand Editor">
-            <IconButton size="small" onClick={() => setEditorCollapsed(false)} aria-label="Expand Editor" sx={{ color: 'var(--pg-text-button)' }}>
-              <ChevronRightIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
         </Box>
       )}
     </Box>

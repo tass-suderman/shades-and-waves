@@ -60,6 +60,7 @@ export interface StrudelPaneHandle {
   play: () => void
   pause: () => void
   loadExample: (title: string, content: string) => void
+  closeSounds: () => void
 }
 
 interface StrudelPaneProps {
@@ -122,6 +123,9 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
       localStorage.setItem(LS_STRUDEL_CODE, content)
       setStrudelTitle(title)
       localStorage.setItem(LS_STRUDEL_TITLE, title)
+    },
+    closeSounds() {
+      setSoundsOpen(false)
     },
   }), [])
 
@@ -352,46 +356,45 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
 
       <StrudelError error={strudelError} />
 
-      {/* In split mode: sounds replace the editor when soundsOpen; otherwise editor is always shown */}
-      {isSplit && soundsOpen ? (
-        <SoundsPanel />
-      ) : (
+      {/* In split mode: sounds panel is shown above a hidden (but still mounted) editor.
+          Always keeping the editor Box in the DOM preserves the StrudelMirror instance. */}
+      {isSplit && soundsOpen && <SoundsPanel />}
+
+      {/* Strudel CodeMirror editor – always mounted so StrudelMirror stays alive.
+          Hidden via display:none in split mode while the sounds panel is open. */}
+      <Box
+        ref={rootRef}
+        onClick={() => {
+          const view = mirrorRef.current?.editor as { hasFocus?: boolean; focus?: () => void } | undefined
+          if (view?.focus && !view.hasFocus) view.focus()
+        }}
+        sx={{
+          display: (isSplit && soundsOpen) ? 'none' : undefined,
+          flex: soundsOpen && !isSplit ? undefined : 1,
+          height: soundsOpen && !isSplit ? `${soundsSplitRatio}%` : undefined,
+          overflow: 'hidden',
+          cursor: 'text',
+          '& .cm-editor': { height: '100%', fontSize: '13px' },
+          '& .cm-scroller': { fontFamily: 'monospace', overflow: 'auto !important' },
+        }}
+      />
+
+      {/* Resizable divider and sounds panel – only in strudel-only mode */}
+      {!isSplit && soundsOpen && (
         <>
-          {/* Strudel CodeMirror editor */}
           <Box
-            ref={rootRef}
-            onClick={() => {
-              const view = mirrorRef.current?.editor as { hasFocus?: boolean; focus?: () => void } | undefined
-              if (view?.focus && !view.hasFocus) view.focus()
-            }}
+            onMouseDown={handleSoundsDividerMouseDown}
             sx={{
-              flex: soundsOpen ? undefined : 1,
-              height: soundsOpen ? `${soundsSplitRatio}%` : undefined,
-              overflow: 'hidden',
-              cursor: 'text',
-              '& .cm-editor': { height: '100%', fontSize: '13px' },
-              '& .cm-scroller': { fontFamily: 'monospace', overflow: 'auto !important' },
+              height: '4px',
+              bgcolor: 'var(--pg-divider-default)',
+              cursor: 'row-resize',
+              flexShrink: 0,
+              '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
             }}
           />
-
-          {/* Resizable divider and sounds panel – only in strudel-only mode */}
-          {!isSplit && soundsOpen && (
-            <>
-              <Box
-                onMouseDown={handleSoundsDividerMouseDown}
-                sx={{
-                  height: '4px',
-                  bgcolor: 'var(--pg-divider-default)',
-                  cursor: 'row-resize',
-                  flexShrink: 0,
-                  '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
-                }}
-              />
-              <Box sx={{ height: `${100 - soundsSplitRatio}%`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                <SoundsPanel />
-              </Box>
-            </>
-          )}
+          <Box sx={{ height: `${100 - soundsSplitRatio}%`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <SoundsPanel />
+          </Box>
         </>
       )}
     </Box>

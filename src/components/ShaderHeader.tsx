@@ -25,8 +25,12 @@ export interface ShaderHeaderProps {
   isPlaying?: boolean
   onStop?: () => void
   onShowSounds?: () => void
+  /** When true the music-note button is rendered in the accent colour to show it is active */
+  soundsActive?: boolean
   // GLSL-specific optional props
   onShowUniforms?: () => void
+  /** When true the uniforms button is rendered in the accent colour to show it is active */
+  uniformsActive?: boolean
 }
 
 export default function ShaderHeader({
@@ -43,7 +47,9 @@ export default function ShaderHeader({
   isPlaying,
   onStop,
   onShowSounds,
+  soundsActive = false,
   onShowUniforms,
+  uniformsActive = false,
 }: ShaderHeaderProps) {
   return (
     <Box
@@ -75,8 +81,13 @@ export default function ShaderHeader({
 
       {/* Sounds button – only for Strudel */}
       {onShowSounds && (
-        <Tooltip title="Available sounds">
-          <IconButton size="small" onClick={onShowSounds} aria-label="Available sounds" sx={{ color: 'var(--pg-text-primary)' }}>
+        <Tooltip title={soundsActive ? 'Hide sounds' : 'Available sounds'}>
+          <IconButton
+            size="small"
+            onClick={onShowSounds}
+            aria-label="Available sounds"
+            sx={{ color: soundsActive ? 'var(--pg-accent)' : 'var(--pg-text-primary)' }}
+          >
             <MusicNoteIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -84,8 +95,8 @@ export default function ShaderHeader({
 
       {/* Uniforms button – only for GLSL */}
       {onShowUniforms && (
-        <Tooltip title="Available uniforms">
-          <IconButton size="small" onClick={onShowUniforms} aria-label="Available uniforms" sx={{ color: 'var(--pg-text-primary)' }}>
+        <Tooltip title={uniformsActive ? 'Hide uniforms' : 'Available uniforms'}>
+          <IconButton size="small" onClick={onShowUniforms} aria-label="Available uniforms" sx={{ color: uniformsActive ? 'var(--pg-accent)' : 'var(--pg-text-primary)' }}>
             <InfoOutlinedIcon fontSize="small" />
           </IconButton>
         </Tooltip>

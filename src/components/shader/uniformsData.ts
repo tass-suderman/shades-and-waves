@@ -42,12 +42,12 @@ export const UNIFORMS: readonly UniformEntry[] = [
   {
     name: 'iChannel1',
     type: 'sampler2D',
-    description: 'Microphone / system audio frequency texture (1-D, red channel = frequency bin amplitude). Enable mic or system audio in the controls.',
+    description: 'Microphone audio frequency texture (1-D, red channel = frequency bin amplitude). Enable mic in the controls.',
   },
   {
     name: 'iChannel1Enabled',
     type: 'bool',
-    description: 'True when microphone or system audio is active and iChannel1 contains data.',
+    description: 'True when microphone is active and iChannel1 contains data.',
   },
   {
     name: 'iChannel2',

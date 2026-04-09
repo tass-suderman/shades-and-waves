@@ -1,12 +1,16 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import Box from '@mui/material/Box'
+import Collapse from '@mui/material/Collapse'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import type { SxProps, Theme } from '@mui/material/styles'
 import ShaderPane, { type ShaderPaneHandle } from './components/ShaderPane'
 import EditorPane, { type EditorPaneHandle } from './components/EditorPane'
 import StrudelPane, { type StrudelPaneHandle } from './components/StrudelPane'
 import SettingsPane from './components/SettingsPane'
 import CombinedExamplesPanel from './components/CombinedExamplesPanel'
+import AboutPane from './components/AboutPane'
 import { DEFAULT_SHADER } from './shaders/default'
 import { applyTheme, getThemeByName } from './themes/appThemes'
 import { useMediaStreams } from './hooks/useMediaStreams'
@@ -22,7 +26,7 @@ const LS_MUTED = 'shader-playground:muted'
 // without waiting for a user action.
 const initialShaderCode = localStorage.getItem(LS_GLSL_CODE) ?? DEFAULT_SHADER
 
-type ViewMode = 'glsl' | 'strudel' | 'examples' | 'settings'
+type ViewMode = 'glsl' | 'strudel' | 'examples' | 'settings' | 'about'
 
 // Shared base styles for all top-bar toggle buttons
 const baseTabSx = {
@@ -49,8 +53,8 @@ const editorTabSx = { ...baseTabSx, color: 'var(--pg-text-button)' } as const
 // Utility tabs (Examples / Settings) – warm complementary text colour
 const utilTabSx = { ...baseTabSx, color: 'var(--pg-text-util-tab)' } as const
 
-// Source tab – a second warm complementary text colour
-const sourceTabSx = { ...baseTabSx, color: 'var(--pg-text-source-tab)' } as const
+// About tab – a second warm complementary text colour
+const aboutTabSx = { ...baseTabSx, color: 'var(--pg-text-source-tab)' } as const
 
 export default function App() {
   const [shaderSource, setShaderSource] = useState<string>(initialShaderCode)
@@ -60,6 +64,9 @@ export default function App() {
   const [strudelAnalyser, setStrudelAnalyser] = useState<AnalyserNode | null>(null)
   const [strudelAudioStream, setStrudelAudioStream] = useState<MediaStream | null>(null)
   const [leftRatio, setLeftRatio] = useState(50)
+  /** On mobile the canvas occupies this % of viewport height (editor gets the rest) */
+  const [mobileShaderRatio, setMobileShaderRatio] = useState(50)
+  const [editorCollapsed, setEditorCollapsed] = useState(false)
   const [vimMode, setVimMode] = useState<boolean>(() => localStorage.getItem(LS_VIM_MODE) === 'true')
   const [themeName, setThemeName] = useState<string>(() => localStorage.getItem(LS_THEME) ?? 'kanagawa')
   const [volume, setVolume] = useState<number>(() => {
@@ -74,6 +81,9 @@ export default function App() {
   // Keep a ref to pendingSource for the global keydown handler (avoids stale closure)
   const pendingSourceRef = useRef(pendingSource)
   pendingSourceRef.current = pendingSource
+
+  /** True when the viewport is narrow enough to be considered a phone/small device */
+  const isMobile = useMediaQuery('(max-width: 600px)')
 
   const {
     webcamEnabled,
@@ -119,18 +129,19 @@ export default function App() {
   // Global keyboard shortcuts (capture phase so they fire before Monaco / CodeMirror)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // Ctrl+Enter / Cmd+Enter → Play Shader (run/compile)
+      // Ctrl+Enter / Cmd+Enter → Play Shader (run/compile) and unpause if paused
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault()
         e.stopPropagation()
         setShaderSource(pendingSourceRef.current)
+        shaderRef.current?.unpause()
         return
       }
-      // Ctrl+. / Cmd+. → Pause Shader (freeze animation)
+      // Ctrl+. / Cmd+. → Toggle Shader pause/unpause
       if ((e.ctrlKey || e.metaKey) && e.key === '.') {
         e.preventDefault()
         e.stopPropagation()
-        shaderRef.current?.pause()
+        shaderRef.current?.togglePlay()
         return
       }
       // Alt+Enter → Play Strudel
@@ -151,6 +162,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler, { capture: true })
   }, [])
 
+  /** Horizontal divider between shader and editor (desktop side-by-side layout) */
   const handleHorizontalDividerMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     const container = outerContainerRef.current
@@ -171,7 +183,29 @@ export default function App() {
     document.addEventListener('mouseup', onUp)
   }, [leftRatio])
 
-  // Examples loading callbacks – called by CombinedExamplesPanel
+  /** Horizontal divider between shader (top) and editor (bottom) on mobile */
+  const handleMobileDividerMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const container = outerContainerRef.current
+    if (!container) return
+    const startY = e.clientY
+    const startRatio = mobileShaderRatio
+    const containerH = container.getBoundingClientRect().height
+    const onMove = (me: MouseEvent) => {
+      const delta = me.clientY - startY
+      const newRatio = Math.min(80, Math.max(20, startRatio + (delta / containerH) * 100))
+      setMobileShaderRatio(newRatio)
+    }
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+    }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }, [mobileShaderRatio])
+
+  // ── Examples loading ───────────────────────────────────────────────────────
+
   const handleLoadGlslExample = useCallback((title: string, content: string) => {
     editorRef.current?.loadExample(title, content)
     setViewMode('glsl')
@@ -185,10 +219,189 @@ export default function App() {
   const showGlsl = viewMode === 'glsl'
   const showStrudel = viewMode === 'strudel'
 
+  // Sx helpers for the animated editor panel Collapse – extracted for readability
+  const mobileEditorCollapseSx = {
+    flex: !editorCollapsed ? 1 : undefined,
+    minHeight: 0,
+    display: !editorCollapsed ? 'flex' : undefined,
+    flexDirection: 'column',
+  } as const
+
+  const desktopEditorCollapseSx = {
+    flex: !editorCollapsed ? 1 : undefined,
+    minWidth: 0,
+    display: !editorCollapsed ? 'flex' : undefined,
+    flexDirection: 'column',
+    '& .MuiCollapse-wrapper, & .MuiCollapse-wrapperInner': {
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+    },
+  } as SxProps<Theme>
+
+  // ── Tab bar ────────────────────────────────────────────────────────────────
+
+  const tabBar = (
+    <Box sx={{
+      px: 1,
+      py: 0.5,
+      bgcolor: 'var(--pg-bg-header)',
+      borderBottom: '1px solid var(--pg-border-subtle)',
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 1,
+    }}>
+      <ToggleButtonGroup
+        value={viewMode}
+        exclusive
+        onChange={(_e, val: string | null) => {
+          if (!val) return
+          setViewMode(val as ViewMode)
+          strudelRef.current?.closeSounds()
+        }}
+        size="small"
+        sx={{ flex: 1, minWidth: 0 }}
+      >
+        <ToggleButton value="glsl" sx={editorTabSx}>GLSL</ToggleButton>
+        <ToggleButton value="strudel" sx={editorTabSx}>Strudel</ToggleButton>
+        <ToggleButton value="examples" sx={utilTabSx}>Examples</ToggleButton>
+        <ToggleButton value="settings" sx={utilTabSx}>Settings</ToggleButton>
+        <ToggleButton value="about" sx={aboutTabSx}>About</ToggleButton>
+      </ToggleButtonGroup>
+    </Box>
+  )
+
+  // ── Editor content area (shared between mobile and desktop) ───────────────
+
+  const editorContent = (
+    <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+      {/* About panel */}
+      {viewMode === 'about' && <AboutPane />}
+
+      {/* Settings panel */}
+      {viewMode === 'settings' && (
+        <SettingsPane
+          vimMode={vimMode}
+          onVimModeChange={handleVimModeChange}
+          themeName={themeName}
+          onThemeChange={handleThemeChange}
+        />
+      )}
+
+      {/* Examples panel (combined GLSL + Strudel) */}
+      {viewMode === 'examples' && (
+        <Box sx={{ flex: 1, overflow: 'hidden' }}>
+          <CombinedExamplesPanel
+            onLoadGlsl={handleLoadGlslExample}
+            onLoadStrudel={handleLoadStrudelExample}
+          />
+        </Box>
+      )}
+
+      {/* GLSL editor – hidden but mounted when not visible to preserve state */}
+      <Box sx={{
+        display: showGlsl ? 'flex' : 'none',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+      }}>
+        <EditorPane
+          ref={editorRef}
+          initialCode={initialShaderCode}
+          onRun={handleRun}
+          pendingSource={pendingSource}
+          onCodeChange={setPendingSource}
+          shaderError={shaderError}
+          vimMode={vimMode}
+          themeName={themeName}
+        />
+      </Box>
+
+      {/* Strudel pane – hidden but mounted when not visible to preserve state */}
+      <Box sx={{
+        display: showStrudel ? 'flex' : 'none',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+      }}>
+        <StrudelPane
+          ref={strudelRef}
+          onAnalyserReady={setStrudelAnalyser}
+          onAudioStreamReady={setStrudelAudioStream}
+          vimMode={vimMode}
+          themeName={themeName}
+          volume={volume}
+          muted={muted}
+        />
+      </Box>
+    </Box>
+  )
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
+  if (isMobile) {
+    // Mobile: vertical stack – shader on top, editor panel below
+    return (
+      <Box
+        ref={outerContainerRef}
+        sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden', bgcolor: 'var(--pg-bg-app)' }}
+      >
+        {/* Top: shader canvas */}
+        <Box sx={{ height: editorCollapsed ? '100%' : `${mobileShaderRatio}%`, flexShrink: 0, minHeight: 0 }}>
+          <ShaderPane
+            ref={shaderRef}
+            shaderSource={shaderSource}
+            webcamStream={webcamStream}
+            audioStream={audioStream}
+            strudelAnalyser={strudelAnalyser}
+            strudelAudioStream={strudelAudioStream}
+            webcamEnabled={webcamEnabled}
+            micEnabled={micEnabled}
+            volume={volume}
+            muted={muted}
+            onToggleWebcam={handleToggleWebcam}
+            onToggleMic={handleToggleMic}
+            onVolumeChange={handleVolumeChange}
+            onToggleMute={handleToggleMute}
+            onShaderError={setShaderError}
+            editorCollapsed={editorCollapsed}
+            onToggleEditorCollapsed={() => setEditorCollapsed(c => !c)}
+            isMobile={true}
+          />
+        </Box>
+
+        {/* Horizontal drag divider */}
+        {!editorCollapsed && (
+          <Box
+            onMouseDown={handleMobileDividerMouseDown}
+            sx={{
+              height: '4px',
+              cursor: 'row-resize',
+              bgcolor: 'var(--pg-divider-default)',
+              flexShrink: 0,
+              '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
+            }}
+          />
+        )}
+
+        {/* Bottom: editor panel */}
+        <Collapse in={!editorCollapsed} sx={mobileEditorCollapseSx}>
+          <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            {tabBar}
+            {editorContent}
+          </Box>
+        </Collapse>
+      </Box>
+    )
+  }
+
+  // Desktop: horizontal layout – shader on left, editor on right
   return (
     <Box ref={outerContainerRef} sx={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', bgcolor: 'var(--pg-bg-app)' }}>
       {/* Left: shader canvas */}
-      <Box sx={{ width: `${leftRatio}%`, minWidth: 0, flexShrink: 0 }}>
+      <Box sx={{ width: editorCollapsed ? '100%' : `${leftRatio}%`, minWidth: 0, flexShrink: 0 }}>
         <ShaderPane
           ref={shaderRef}
           shaderSource={shaderSource}
@@ -205,122 +418,33 @@ export default function App() {
           onVolumeChange={handleVolumeChange}
           onToggleMute={handleToggleMute}
           onShaderError={setShaderError}
+          editorCollapsed={editorCollapsed}
+          onToggleEditorCollapsed={() => setEditorCollapsed(c => !c)}
+          isMobile={false}
         />
       </Box>
 
       {/* Horizontal drag divider between shader and editor */}
-      <Box
-        onMouseDown={handleHorizontalDividerMouseDown}
-        sx={{
-          width: '4px',
-          cursor: 'col-resize',
-          bgcolor: 'var(--pg-divider-default)',
-          flexShrink: 0,
-          '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
-        }}
-      />
+      {!editorCollapsed && (
+        <Box
+          onMouseDown={handleHorizontalDividerMouseDown}
+          sx={{
+            width: '4px',
+            cursor: 'col-resize',
+            bgcolor: 'var(--pg-divider-default)',
+            flexShrink: 0,
+            '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
+          }}
+        />
+      )}
 
       {/* Right: editor panel */}
-      <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        {/* Top tab bar */}
-        <Box sx={{
-          px: 1,
-          py: 0.5,
-          bgcolor: 'var(--pg-bg-header)',
-          borderBottom: '1px solid var(--pg-border-subtle)',
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-        }}>
-          <ToggleButtonGroup
-            value={viewMode}
-            exclusive
-            onChange={(_e, val: string | null) => {
-              // 'source' is an anchor link – let the browser handle it; don't change mode
-              if (!val || val === 'source') return
-              setViewMode(val as ViewMode)
-            }}
-            size="small"
-            sx={{ flex: 1 }}
-          >
-            <ToggleButton value="glsl" sx={editorTabSx}>GLSL</ToggleButton>
-            <ToggleButton value="strudel" sx={editorTabSx}>Strudel</ToggleButton>
-            <ToggleButton value="examples" sx={utilTabSx}>Examples</ToggleButton>
-            <ToggleButton value="settings" sx={utilTabSx}>Settings</ToggleButton>
-            <ToggleButton
-              value="source"
-              component="a"
-              href="https://github.com/tass-suderman/shades-and-waves"
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={sourceTabSx}
-            >
-              Source
-            </ToggleButton>
-          </ToggleButtonGroup>
+      <Collapse orientation="horizontal" in={!editorCollapsed} sx={desktopEditorCollapseSx}>
+        <Box sx={{ width: '100%', minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+          {tabBar}
+          {editorContent}
         </Box>
-
-        {/* Editor area */}
-        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          {/* Settings panel */}
-          {viewMode === 'settings' && (
-            <SettingsPane
-              vimMode={vimMode}
-              onVimModeChange={handleVimModeChange}
-              themeName={themeName}
-              onThemeChange={handleThemeChange}
-            />
-          )}
-
-          {/* Examples panel (combined GLSL + Strudel) */}
-          {viewMode === 'examples' && (
-            <Box sx={{ flex: 1, overflow: 'hidden' }}>
-              <CombinedExamplesPanel
-                onLoadGlsl={handleLoadGlslExample}
-                onLoadStrudel={handleLoadStrudelExample}
-              />
-            </Box>
-          )}
-
-          {/* GLSL editor – hidden but mounted when not visible to preserve state */}
-          <Box sx={{
-            display: showGlsl ? 'flex' : 'none',
-            flexDirection: 'column',
-            height: '100%',
-            minHeight: 0,
-          }}>
-            <EditorPane
-              ref={editorRef}
-              initialCode={initialShaderCode}
-              onRun={handleRun}
-              pendingSource={pendingSource}
-              onCodeChange={setPendingSource}
-              shaderError={shaderError}
-              vimMode={vimMode}
-              themeName={themeName}
-            />
-          </Box>
-
-          {/* Strudel pane – hidden but mounted when not visible to preserve state */}
-          <Box sx={{
-            display: showStrudel ? 'flex' : 'none',
-            flexDirection: 'column',
-            height: '100%',
-            minHeight: 0,
-          }}>
-            <StrudelPane
-              ref={strudelRef}
-              onAnalyserReady={setStrudelAnalyser}
-              onAudioStreamReady={setStrudelAudioStream}
-              vimMode={vimMode}
-              themeName={themeName}
-              volume={volume}
-              muted={muted}
-            />
-          </Box>
-        </Box>
-      </Box>
+      </Collapse>
     </Box>
   )
 }

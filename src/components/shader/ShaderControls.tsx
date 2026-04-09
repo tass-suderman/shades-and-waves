@@ -15,6 +15,10 @@ import VolumeDownIcon from '@mui/icons-material/VolumeDown'
 import VolumeOffIcon from '@mui/icons-material/VolumeOff'
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord'
 import StopCircleIcon from '@mui/icons-material/StopCircle'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ChannelStatusChips from './ChannelStatusChips'
 
 interface ShaderControlsProps {
@@ -34,6 +38,12 @@ interface ShaderControlsProps {
   onStartRecording: () => void
   onStopRecording: () => void
   onToggleFullscreen: () => void
+  /** Whether the editor panel is currently collapsed */
+  editorCollapsed?: boolean
+  /** Callback to toggle editor collapse/expand */
+  onToggleEditorCollapsed?: () => void
+  /** True when on a narrow/mobile viewport (affects icon direction) */
+  isMobile?: boolean
 }
 
 export default function ShaderControls({
@@ -53,6 +63,9 @@ export default function ShaderControls({
   onStartRecording,
   onStopRecording,
   onToggleFullscreen,
+  editorCollapsed,
+  onToggleEditorCollapsed,
+  isMobile = false,
 }: ShaderControlsProps) {
   const VolumeIcon = muted
     ? VolumeOffIcon
@@ -135,6 +148,22 @@ export default function ShaderControls({
           {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
         </IconButton>
       </Tooltip>
+
+      {onToggleEditorCollapsed !== undefined && (
+        <Tooltip title={editorCollapsed ? 'Expand Editor' : 'Collapse Editor'}>
+          <IconButton
+            onClick={onToggleEditorCollapsed}
+            size="small"
+            aria-label={editorCollapsed ? 'Expand Editor' : 'Collapse Editor'}
+            sx={{ color: 'white' }}
+          >
+            {isMobile
+              ? (editorCollapsed ? <ExpandMoreIcon /> : <ExpandLessIcon />)
+              : (editorCollapsed ? <ChevronLeftIcon /> : <ChevronRightIcon />)
+            }
+          </IconButton>
+        </Tooltip>
+      )}
     </Box>
   )
 }

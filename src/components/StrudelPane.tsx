@@ -1,11 +1,12 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
 import { StrudelMirror } from '@strudel/codemirror'
-import { prebake } from '@strudel/repl'
+import { evalScope } from '@strudel/core'
 import { webaudioOutput, getAudioContext, initAudioOnFirstClick, getSuperdoughAudioController, registerSynthSounds, registerZZFXSounds, soundAlias } from '@strudel/webaudio'
 import { transpiler } from '@strudel/transpiler'
 import ShaderHeader from './ShaderHeader'
-import SoundsModal from './strudel/SoundsModal'
+import StrudelError from './strudel/StrudelError'
+import SoundsPanel from './strudel/SoundsPanel'
 import { registerInstruments } from '../strudel/instruments'
 // @strudel/codemirror ships no TypeScript declarations; augment the methods we use
 type StrudelMirrorExt = StrudelMirror & {
@@ -13,24 +14,31 @@ type StrudelMirrorExt = StrudelMirror & {
   setTheme: (name: string) => void
 }
 
-// Minimal prebake: first registers built-in oscillator sounds synchronously
-// (sawtooth, sine, square, triangle, etc.), then runs the full prebake which
-// loads evalScope globals and optional remote sample banks.  Any failure in
-// remote sample loading is caught so the prebake promise never rejects –
-// built-in oscillators will always work, even offline.
+// Custom prebake: loads the evalScope globals needed for Strudel pattern evaluation
+// without fetching remote sample banks. This avoids unnecessary network requests
+// for samples we do not expose in the UI.
+// The synthesised sounds (oscillators, 909 drums, ZZFX, acid bass) registered below
+// are always available offline.
 const minimalPrebake = async (): Promise<void> => {
   registerSynthSounds()
   registerZZFXSounds()
   registerInstruments()
   // Register 'bd' as a fallback alias for 'sbd' (synth bass drum) so patterns
-  // using the common 'bd' name work even when remote sample banks fail to load.
-  // If prebake() succeeds and loads real 'bd' samples they will take precedence.
+  // using the common 'bd' name work even without remote sample banks.
   soundAlias('sbd', 'bd')
-  try {
-    await prebake()
-  } catch {
-    console.warn('[strudel] Remote sample loading failed – only built-in oscillator sounds are available.')
-  }
+
+  // Load all evalScope modules so that Strudel pattern functions (note, sound,
+  // slow, fast, lpf, …) are available as globals at evaluation time.
+  // These are local JavaScript imports – no network requests for audio files.
+  await evalScope(
+    import('@strudel/core'),
+    import('@strudel/mini'),
+    import('@strudel/tonal'),
+    import('@strudel/webaudio'),
+    import('@strudel/codemirror'),
+  ).catch(() => {
+    console.warn('[strudel] Some pattern modules failed to load.')
+  })
 }
 
 const DEFAULT_STRUDEL_CODE = `// Strudel live-coding pattern
@@ -52,6 +60,7 @@ export interface StrudelPaneHandle {
   play: () => void
   pause: () => void
   loadExample: (title: string, content: string) => void
+  closeSounds: () => void
 }
 
 interface StrudelPaneProps {
@@ -82,6 +91,12 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
     () => localStorage.getItem(LS_STRUDEL_TITLE) ?? DEFAULT_STRUDEL_TITLE,
   )
   const [soundsOpen, setSoundsOpen] = useState(false)
+  /** Ratio (20–80) of the strudel-only sounds split: editor top / sounds bottom */
+  const [soundsSplitRatio, setSoundsSplitRatio] = useState(50)
+  const soundsPaneRef = useRef<HTMLDivElement>(null)
+  /** Most-recently seen error message – used to deduplicate identical errors */
+  const lastErrorRef = useRef<string | null>(null)
+  const [strudelError, setStrudelError] = useState<string | null>(null)
   const onAnalyserReadyRef = useRef(onAnalyserReady)
   onAnalyserReadyRef.current = onAnalyserReady
   const onAudioStreamReadyRef = useRef(onAudioStreamReady)
@@ -112,6 +127,9 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
       setStrudelTitle(title)
       localStorage.setItem(LS_STRUDEL_TITLE, title)
     },
+    closeSounds() {
+      setSoundsOpen(false)
+    },
   }), [])
 
   useEffect(() => {
@@ -125,9 +143,22 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
       getTime: () => getAudioContext()?.currentTime ?? 0,
       transpiler,
       solo: false,
+      onEvalError: (err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err)
+        // Only update the displayed error when the message changes (suppress repeated identical errors)
+        if (msg !== lastErrorRef.current) {
+          lastErrorRef.current = msg
+          setStrudelError(msg)
+        }
+      },
       onToggle: (started: boolean) => {
         isPlayingRef.current = started
         setIsPlaying(started)
+        if (started) {
+          // Clear any previously shown eval error when playback starts successfully
+          lastErrorRef.current = null
+          setStrudelError(null)
+        }
         if (started && !analyserRef.current) {
           const ctx = getAudioContext()
           const controller = getSuperdoughAudioController()
@@ -288,15 +319,37 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
     localStorage.setItem(LS_STRUDEL_TITLE, e.target.value)
   }, [])
 
+  /** Drag handler for the sounds-split divider (strudel-only mode) */
+  const handleSoundsDividerMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const pane = soundsPaneRef.current
+    if (!pane) return
+    const startY = e.clientY
+    const startRatio = soundsSplitRatio
+    const paneH = pane.getBoundingClientRect().height
+    const onMove = (me: MouseEvent) => {
+      const delta = me.clientY - startY
+      const newRatio = Math.min(80, Math.max(20, startRatio + (delta / paneH) * 100))
+      setSoundsSplitRatio(newRatio)
+    }
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+    }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }, [soundsSplitRatio])
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'var(--pg-bg-panel)' }}>
+    <Box ref={soundsPaneRef} sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'var(--pg-bg-panel)' }}>
       <ShaderHeader
         title={strudelTitle}
         isPlaying={isPlaying}
         onTitleChange={handleTitleChange}
         onImport={handleImportClick}
         onExport={handleExport}
-        onShowSounds={() => setSoundsOpen(true)}
+        onShowSounds={() => setSoundsOpen(v => !v)}
+        soundsActive={soundsOpen}
         onRun={handleRun}
         onStop={handleStop}
         titleAriaLabel="Strudel pattern title"
@@ -315,16 +368,19 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
         onChange={handleFileChange}
       />
 
-      {/* Strudel CodeMirror editor – fills available space; click empty area to focus */}
+      <StrudelError error={strudelError} />
+
+      {/* Strudel CodeMirror editor – always mounted so StrudelMirror stays alive.
+          Height shrinks to give space to the sounds panel when it is open. */}
       <Box
         ref={rootRef}
         onClick={() => {
-          // Focus the CodeMirror editor when clicking the empty area below content
           const view = mirrorRef.current?.editor as { hasFocus?: boolean; focus?: () => void } | undefined
           if (view?.focus && !view.hasFocus) view.focus()
         }}
         sx={{
-          flex: 1,
+          flex: soundsOpen ? undefined : 1,
+          height: soundsOpen ? `${soundsSplitRatio}%` : undefined,
           overflow: 'hidden',
           cursor: 'text',
           '& .cm-editor': { height: '100%', fontSize: '13px' },
@@ -332,7 +388,24 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
         }}
       />
 
-      <SoundsModal open={soundsOpen} onClose={() => setSoundsOpen(false)} />
+      {/* Resizable divider and sounds panel */}
+      {soundsOpen && (
+        <>
+          <Box
+            onMouseDown={handleSoundsDividerMouseDown}
+            sx={{
+              height: '4px',
+              bgcolor: 'var(--pg-divider-default)',
+              cursor: 'row-resize',
+              flexShrink: 0,
+              '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
+            }}
+          />
+          <Box sx={{ height: `${100 - soundsSplitRatio}%`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <SoundsPanel />
+          </Box>
+        </>
+      )}
     </Box>
   )
 })

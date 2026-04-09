@@ -17,6 +17,8 @@ function downloadBlob(blob: Blob, filename: string): void {
 
 export interface ShaderPaneHandle {
   pause: () => void
+  unpause: () => void
+  togglePlay: () => void
 }
 
 interface ShaderPaneProps {
@@ -35,6 +37,12 @@ interface ShaderPaneProps {
   onVolumeChange: (value: number) => void
   onToggleMute: () => void
   onShaderError?: (error: string | null) => void
+  /** Whether the editor panel is currently collapsed */
+  editorCollapsed?: boolean
+  /** Callback to toggle editor collapse/expand */
+  onToggleEditorCollapsed?: () => void
+  /** True when on a narrow/mobile viewport */
+  isMobile?: boolean
 }
 
 export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane({
@@ -52,6 +60,9 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   onVolumeChange,
   onToggleMute,
   onShaderError,
+  editorCollapsed,
+  onToggleEditorCollapsed,
+  isMobile,
 }: ShaderPaneProps, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -64,6 +75,12 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   useImperativeHandle(ref, () => ({
     pause() {
       setIsPlaying(false)
+    },
+    unpause() {
+      setIsPlaying(true)
+    },
+    togglePlay() {
+      setIsPlaying(p => !p)
     },
   }), [])
 
@@ -215,6 +232,9 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
         onStartRecording={handleStartRecording}
         onStopRecording={handleStopRecording}
         onToggleFullscreen={handleFullscreen}
+        editorCollapsed={editorCollapsed}
+        onToggleEditorCollapsed={onToggleEditorCollapsed}
+        isMobile={isMobile}
       />
     </Box>
   )

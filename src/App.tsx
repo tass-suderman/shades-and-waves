@@ -433,7 +433,7 @@ export default function App() {
 
       {/* Right: editor panel */}
       <Collapse orientation="horizontal" in={!editorCollapsed} sx={desktopEditorCollapseSx}>
-        <Box sx={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ width: '100%', minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
           {tabBar}
           {editorContent}
         </Box>

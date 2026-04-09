@@ -4,6 +4,7 @@ import Collapse from '@mui/material/Collapse'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import useMediaQuery from '@mui/material/useMediaQuery'
+import type { SxProps, Theme } from '@mui/material/styles'
 import ShaderPane, { type ShaderPaneHandle } from './components/ShaderPane'
 import EditorPane, { type EditorPaneHandle } from './components/EditorPane'
 import StrudelPane, { type StrudelPaneHandle } from './components/StrudelPane'
@@ -231,7 +232,13 @@ export default function App() {
     minWidth: 0,
     display: !editorCollapsed ? 'flex' : undefined,
     flexDirection: 'column',
-  } as const
+    '& .MuiCollapse-wrapper, & .MuiCollapse-wrapperInner': {
+      width: '100%',
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+    },
+  } as SxProps<Theme>
 
   // ── Tab bar ────────────────────────────────────────────────────────────────
 

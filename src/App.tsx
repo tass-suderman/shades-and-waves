@@ -352,8 +352,12 @@ export default function App() {
             strudelAudioStream={strudelAudioStream}
             webcamEnabled={webcamEnabled}
             micEnabled={micEnabled}
+            volume={volume}
+            muted={muted}
             onToggleWebcam={handleToggleWebcam}
             onToggleMic={handleToggleMic}
+            onVolumeChange={handleVolumeChange}
+            onToggleMute={handleToggleMute}
             onShaderError={setShaderError}
             editorCollapsed={editorCollapsed}
             onToggleEditorCollapsed={() => setEditorCollapsed(c => !c)}

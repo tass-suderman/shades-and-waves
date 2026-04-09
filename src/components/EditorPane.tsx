@@ -6,6 +6,7 @@ import type { OnMount, BeforeMount } from '@monaco-editor/react'
 import { initVimMode, type VimAdapterInstance } from 'monaco-vim'
 import ShaderHeader from './ShaderHeader'
 import ShaderError from './editor/ShaderError'
+import UniformsModal from './shader/UniformsModal'
 import { GLSL_MONARCH_TOKENS, GLSL_LANGUAGE_CONFIG } from './editor/glslLanguage'
 import { ensureMonacoThemes, themeNameToMonaco } from './editor/monacoThemes'
 
@@ -34,6 +35,7 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
   const [shaderTitle, setShaderTitle] = useState(
     () => localStorage.getItem(LS_GLSL_TITLE) ?? DEFAULT_SHADER_TITLE,
   )
+  const [uniformsModalOpen, setUniformsModalOpen] = useState(false)
   // TODO -- Fix me
   // const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -193,6 +195,7 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
         exportAriaLabel="Export shader to file"
         runLabel="Run Shader"
         runColor="primary"
+        onShowUniforms={() => setUniformsModalOpen(true)}
       />
 
       {/* Hidden file input for import */}
@@ -203,6 +206,8 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
         style={{ display: 'none' }}
         onChange={handleFileChange}
       />
+
+      <UniformsModal open={uniformsModalOpen} onClose={() => setUniformsModalOpen(false)} />
 
       <ShaderError error={shaderError} />
 

@@ -12,15 +12,12 @@ import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import CloseIcon from '@mui/icons-material/Close'
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 
 interface ExampleMeta {
   id: string
   title: string
-}
-
-interface ExampleFile {
-  title: string
-  content: string
+  aiGenerated?: boolean
 }
 
 interface ExamplesPanelProps {
@@ -52,9 +49,10 @@ export default function ExamplesPanel({ type, onLoad }: ExamplesPanelProps) {
   const handleConfirm = () => {
     if (!pending) return
     setConfirmOpen(false)
-    fetch(`./examples/${type}/${pending.id}.json`)
-      .then(r => r.json())
-      .then((data: ExampleFile) => onLoad(data.title, data.content))
+    const ext = type === 'glsl' ? 'glsl' : 'strudel'
+    fetch(`./examples/${type}/${pending.id}.${ext}`)
+      .then(r => r.text())
+      .then((content: string) => onLoad(pending.title, content))
       .catch(() => setLoadError(true))
     setPending(null)
   }
@@ -114,6 +112,9 @@ export default function ExamplesPanel({ type, onLoad }: ExamplesPanelProps) {
                     },
                   }}
                 />
+                {ex.aiGenerated && (
+                  <AutoAwesomeIcon titleAccess="AI-generated example" sx={{ fontSize: '0.875rem', color: 'rgba(255,220,100,0.8)', ml: 1 }} />
+                )}
               </ListItemButton>
             </ListItem>
           ))}

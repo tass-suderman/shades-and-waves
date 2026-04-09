@@ -5,6 +5,7 @@ import InputBase from '@mui/material/InputBase'
 import Tooltip from '@mui/material/Tooltip'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import MusicNoteIcon from '@mui/icons-material/MusicNote'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import StopIcon from '@mui/icons-material/Stop'
@@ -26,6 +27,10 @@ export interface ShaderHeaderProps {
   onShowSounds?: () => void
   /** When true the music-note button is rendered in the accent colour to show it is active */
   soundsActive?: boolean
+  // GLSL-specific optional props
+  onShowUniforms?: () => void
+  /** When true the uniforms button is rendered in the accent colour to show it is active */
+  uniformsActive?: boolean
 }
 
 export default function ShaderHeader({
@@ -43,6 +48,8 @@ export default function ShaderHeader({
   onStop,
   onShowSounds,
   soundsActive = false,
+  onShowUniforms,
+  uniformsActive = false,
 }: ShaderHeaderProps) {
   return (
     <Box
@@ -82,6 +89,15 @@ export default function ShaderHeader({
             sx={{ color: soundsActive ? 'var(--pg-accent)' : 'var(--pg-text-primary)' }}
           >
             <MusicNoteIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      )}
+
+      {/* Uniforms button – only for GLSL */}
+      {onShowUniforms && (
+        <Tooltip title={uniformsActive ? 'Hide uniforms' : 'Available uniforms'}>
+          <IconButton size="small" onClick={onShowUniforms} aria-label="Available uniforms" sx={{ color: uniformsActive ? 'var(--pg-accent)' : 'var(--pg-text-primary)' }}>
+            <InfoOutlinedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       )}

@@ -6,6 +6,7 @@ import type { OnMount, BeforeMount } from '@monaco-editor/react'
 import { initVimMode, type VimAdapterInstance } from 'monaco-vim'
 import ShaderHeader from './ShaderHeader'
 import ShaderError from './editor/ShaderError'
+import UniformsPanel from './shader/UniformsPanel'
 import { GLSL_MONARCH_TOKENS, GLSL_LANGUAGE_CONFIG } from './editor/glslLanguage'
 import { ensureMonacoThemes, themeNameToMonaco } from './editor/monacoThemes'
 
@@ -34,6 +35,10 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
   const [shaderTitle, setShaderTitle] = useState(
     () => localStorage.getItem(LS_GLSL_TITLE) ?? DEFAULT_SHADER_TITLE,
   )
+  const [uniformsOpen, setUniformsOpen] = useState(false)
+  /** Ratio (20–80) of the uniforms split: editor top / uniforms bottom */
+  const [uniformsSplitRatio, setUniformsSplitRatio] = useState(50)
+  const editorPaneRef = useRef<HTMLDivElement>(null)
   // TODO -- Fix me
   // const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -173,8 +178,30 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
     e.target.value = ''
   }, [onCodeChange])
 
+  /** Drag handler for the uniforms-split divider */
+  const handleUniformsDividerMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    const pane = editorPaneRef.current
+    if (!pane) return
+    const startY = e.clientY
+    const startRatio = uniformsSplitRatio
+    const paneH = pane.getBoundingClientRect().height
+    const onMove = (me: MouseEvent) => {
+      const delta = me.clientY - startY
+      const newRatio = Math.min(80, Math.max(20, startRatio + (delta / paneH) * 100))
+      setUniformsSplitRatio(newRatio)
+    }
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove)
+      document.removeEventListener('mouseup', onUp)
+    }
+    document.addEventListener('mousemove', onMove)
+    document.addEventListener('mouseup', onUp)
+  }, [uniformsSplitRatio])
+
   return (
     <Box
+      ref={editorPaneRef}
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -193,6 +220,8 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
         exportAriaLabel="Export shader to file"
         runLabel="Run Shader"
         runColor="primary"
+        onShowUniforms={() => setUniformsOpen(v => !v)}
+        uniformsActive={uniformsOpen}
       />
 
       {/* Hidden file input for import */}
@@ -206,8 +235,12 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
 
       <ShaderError error={shaderError} />
 
-      {/* Monaco editor */}
-      <Box sx={{ flex: 1, overflow: 'hidden' }}>
+      {/* Monaco editor – height shrinks to give space to the uniforms panel when open */}
+      <Box sx={{
+        flex: uniformsOpen ? undefined : 1,
+        height: uniformsOpen ? `${uniformsSplitRatio}%` : undefined,
+        overflow: 'hidden',
+      }}>
         <Editor
           height="100%"
           defaultLanguage="glsl"
@@ -226,6 +259,25 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
           }}
         />
       </Box>
+
+      {/* Resizable divider and uniforms panel */}
+      {uniformsOpen && (
+        <>
+          <Box
+            onMouseDown={handleUniformsDividerMouseDown}
+            sx={{
+              height: '4px',
+              bgcolor: 'var(--pg-divider-default)',
+              cursor: 'row-resize',
+              flexShrink: 0,
+              '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
+            }}
+          />
+          <Box sx={{ height: `${100 - uniformsSplitRatio}%`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <UniformsPanel />
+          </Box>
+        </>
+      )}
     </Box>
   )
 })

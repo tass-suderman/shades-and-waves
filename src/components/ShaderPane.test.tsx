@@ -86,10 +86,12 @@ const DEFAULT_PROPS = {
   strudelAudioStream: null,
   webcamEnabled: false,
   micEnabled: false,
-  systemAudioEnabled: false,
+  volume: 50,
+  muted: false,
   onToggleWebcam: vi.fn(),
   onToggleMic: vi.fn(),
-  onToggleSystemAudio: vi.fn(),
+  onVolumeChange: vi.fn(),
+  onToggleMute: vi.fn(),
 }
 
 // ---------------------------------------------------------------------------

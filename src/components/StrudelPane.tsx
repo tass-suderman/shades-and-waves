@@ -68,13 +68,12 @@ interface StrudelPaneProps {
   onAudioStreamReady?: (stream: MediaStream | null) => void
   vimMode?: boolean
   themeName?: string
-  /** Whether we are in split-view mode (GLSL+Strudel). When true, the sounds
-   *  panel replaces the code editor rather than splitting below it. */
-  isSplit?: boolean
+  volume?: number
+  muted?: boolean
 }
 
 const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function StrudelPane(
-  { onAnalyserReady, onAudioStreamReady, vimMode = false, themeName = 'kanagawa', isSplit = false },
+  { onAnalyserReady, onAudioStreamReady, vimMode = false, themeName = 'kanagawa', volume = 50, muted = false },
   ref,
 ) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -107,6 +106,10 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   vimModeRef.current = vimMode
   const themeNameRef = useRef(themeName)
   themeNameRef.current = themeName
+  const volumeRef = useRef(volume)
+  volumeRef.current = volume
+  const mutedRef = useRef(muted)
+  mutedRef.current = muted
 
   useImperativeHandle(ref, () => ({
     play() {
@@ -166,6 +169,9 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
           if (ctx && controller?.output?.destinationGain) {
             const dg = controller.output.destinationGain
             destinationGainRef.current = dg
+
+            // Apply current volume/mute settings immediately
+            dg.gain.value = mutedRef.current ? 0 : volumeRef.current / 100
 
             const analyser = ctx.createAnalyser()
             analyser.fftSize = 256
@@ -240,6 +246,14 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   useEffect(() => {
     mirrorRef.current?.setTheme(mapToStrudelTheme(themeName))
   }, [themeName])
+
+  // Apply volume / mute to the Strudel GainNode whenever either changes
+  useEffect(() => {
+    const dg = destinationGainRef.current
+    if (dg) {
+      dg.gain.value = muted ? 0 : volume / 100
+    }
+  }, [volume, muted])
 
   // Persist the strudel code when the tab is hidden or the page is unloaded
   useEffect(() => {
@@ -356,16 +370,8 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
 
       <StrudelError error={strudelError} />
 
-      {/* In split mode: sounds panel fills all remaining space; the editor is kept mounted
-          but hidden so StrudelMirror stays alive and can be restored when sounds closes. */}
-      {isSplit && soundsOpen && (
-        <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <SoundsPanel />
-        </Box>
-      )}
-
       {/* Strudel CodeMirror editor – always mounted so StrudelMirror stays alive.
-          Hidden via display:none in split mode while the sounds panel is open. */}
+          Height shrinks to give space to the sounds panel when it is open. */}
       <Box
         ref={rootRef}
         onClick={() => {
@@ -373,9 +379,8 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
           if (view?.focus && !view.hasFocus) view.focus()
         }}
         sx={{
-          display: (isSplit && soundsOpen) ? 'none' : undefined,
-          flex: soundsOpen && !isSplit ? undefined : 1,
-          height: soundsOpen && !isSplit ? `${soundsSplitRatio}%` : undefined,
+          flex: soundsOpen ? undefined : 1,
+          height: soundsOpen ? `${soundsSplitRatio}%` : undefined,
           overflow: 'hidden',
           cursor: 'text',
           '& .cm-editor': { height: '100%', fontSize: '13px' },
@@ -383,8 +388,8 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
         }}
       />
 
-      {/* Resizable divider and sounds panel – only in strudel-only mode */}
-      {!isSplit && soundsOpen && (
+      {/* Resizable divider and sounds panel */}
+      {soundsOpen && (
         <>
           <Box
             onMouseDown={handleSoundsDividerMouseDown}

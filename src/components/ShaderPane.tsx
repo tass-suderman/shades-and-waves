@@ -28,8 +28,12 @@ interface ShaderPaneProps {
   strudelAudioStream?: MediaStream | null
   webcamEnabled: boolean
   micEnabled: boolean
+  volume: number
+  muted: boolean
   onToggleWebcam: () => void
   onToggleMic: () => void
+  onVolumeChange: (value: number) => void
+  onToggleMute: () => void
   onShaderError?: (error: string | null) => void
 }
 
@@ -41,8 +45,12 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   strudelAudioStream,
   webcamEnabled,
   micEnabled,
+  volume,
+  muted,
   onToggleWebcam,
   onToggleMic,
+  onVolumeChange,
+  onToggleMute,
   onShaderError,
 }: ShaderPaneProps, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -197,9 +205,13 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
         webcamEnabled={webcamEnabled}
         micEnabled={micEnabled}
         strudelAnalyser={strudelAnalyser}
+        volume={volume}
+        muted={muted}
         onTogglePlay={() => setIsPlaying(p => !p)}
         onToggleWebcam={onToggleWebcam}
         onToggleMic={onToggleMic}
+        onVolumeChange={onVolumeChange}
+        onToggleMute={onToggleMute}
         onStartRecording={handleStartRecording}
         onStopRecording={handleStopRecording}
         onToggleFullscreen={handleFullscreen}

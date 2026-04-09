@@ -218,6 +218,21 @@ export default function App() {
   const showGlsl = viewMode === 'glsl'
   const showStrudel = viewMode === 'strudel'
 
+  // Sx helpers for the animated editor panel Collapse – extracted for readability
+  const mobileEditorCollapseSx = {
+    flex: !editorCollapsed ? 1 : undefined,
+    minHeight: 0,
+    display: !editorCollapsed ? 'flex' : undefined,
+    flexDirection: 'column',
+  } as const
+
+  const desktopEditorCollapseSx = {
+    flex: !editorCollapsed ? 1 : undefined,
+    minWidth: 0,
+    display: !editorCollapsed ? 'flex' : undefined,
+    flexDirection: 'column',
+  } as const
+
   // ── Tab bar ────────────────────────────────────────────────────────────────
 
   const tabBar = (
@@ -361,7 +376,7 @@ export default function App() {
         )}
 
         {/* Bottom: editor panel */}
-        <Collapse in={!editorCollapsed} sx={{ flex: !editorCollapsed ? 1 : undefined, minHeight: 0, display: !editorCollapsed ? 'flex' : undefined, flexDirection: 'column' }}>
+        <Collapse in={!editorCollapsed} sx={mobileEditorCollapseSx}>
           <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
             {tabBar}
             {editorContent}
@@ -413,7 +428,7 @@ export default function App() {
       )}
 
       {/* Right: editor panel */}
-      <Collapse orientation="horizontal" in={!editorCollapsed} sx={{ flex: !editorCollapsed ? 1 : undefined, minWidth: 0, display: !editorCollapsed ? 'flex' : undefined, flexDirection: 'column' }}>
+      <Collapse orientation="horizontal" in={!editorCollapsed} sx={desktopEditorCollapseSx}>
         <Box sx={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
           {tabBar}
           {editorContent}

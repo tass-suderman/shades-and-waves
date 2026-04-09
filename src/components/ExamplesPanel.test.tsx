@@ -12,9 +12,12 @@ function mockFetch(responses: Record<string, unknown>) {
     const key = String(url)
     const matched = Object.keys(responses).find(k => key.includes(k))
     if (matched) {
+      const value = responses[matched]
+      const text = typeof value === 'string' ? value : JSON.stringify(value)
       return Promise.resolve({
         ok: true,
-        json: () => Promise.resolve(responses[matched]),
+        json: () => Promise.resolve(typeof value === 'string' ? JSON.parse(value) : value),
+        text: () => Promise.resolve(text),
       } as Response)
     }
     return Promise.reject(new Error(`Unexpected fetch: ${key}`))
@@ -73,7 +76,7 @@ describe('ExamplesPanel', () => {
     const user = userEvent.setup()
     fetchSpy = mockFetch({
       'index.json': [{ id: 'plasma', title: 'Plasma Effect' }],
-      'plasma.json': { title: 'Plasma Effect', content: 'void main() { gl_FragColor = vec4(1.0); }' },
+      'plasma.glsl': 'void main() { gl_FragColor = vec4(1.0); }',
     })
     render(<ExamplesPanel type="glsl" onLoad={onLoad} />)
     await waitFor(() => screen.getByText('Plasma Effect'))

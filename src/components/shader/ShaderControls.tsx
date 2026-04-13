@@ -181,6 +181,26 @@ export default function ShaderControls({
             </IconButton>
           </Tooltip>
 
+          {isImmersive && (
+            <Tooltip title={`Opacity: ${immersiveOpacity}%`}>
+              <Slider
+                value={immersiveOpacity}
+                onChange={(_e, val) => onImmersiveOpacityChange?.(val as number)}
+                min={0}
+                max={100}
+                step={1}
+                size="small"
+                aria-label="Background opacity"
+                sx={{
+                  width: 80,
+                  color: 'primary.light',
+                  '& .MuiSlider-thumb': { width: 12, height: 12 },
+                  '& .MuiSlider-rail': { opacity: 0.3 },
+                }}
+              />
+            </Tooltip>
+          )}
+
           <Popover
             open={opacityPopoverOpen}
             anchorEl={previewBtnRef.current}

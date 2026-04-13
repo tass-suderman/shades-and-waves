@@ -9,3 +9,20 @@ html, body, #root {
   height: 100%;
   overflow: hidden;
 }
+
+/* ── Immersive mode ─────────────────────────────────────────────────────────
+   When data-immersive="true" is set on <html>, all --pg-bg-* variables are
+   replaced with colour-mix() equivalents that blend the original colour with
+   transparent at the percentage stored in --pg-immersive-alpha (e.g. "75%").
+   Text variables are intentionally left untouched so text always reads at
+   full opacity.
+   ────────────────────────────────────────────────────────────────────────── */
+:root[data-immersive='true'] {
+  --pg-bg-app:      color-mix(in srgb, var(--pg-bg-app-base)      var(--pg-immersive-alpha, 100%), transparent);
+  --pg-bg-panel:    color-mix(in srgb, var(--pg-bg-panel-base)    var(--pg-immersive-alpha, 100%), transparent);
+  --pg-bg-header:   color-mix(in srgb, var(--pg-bg-header-base)   var(--pg-immersive-alpha, 100%), transparent);
+  --pg-bg-button:   color-mix(in srgb, var(--pg-bg-button-base)   var(--pg-immersive-alpha, 100%), transparent);
+  --pg-bg-card:     color-mix(in srgb, var(--pg-bg-card-base)     var(--pg-immersive-alpha, 100%), transparent);
+  --pg-bg-disabled: color-mix(in srgb, var(--pg-bg-disabled-base) var(--pg-immersive-alpha, 100%), transparent);
+  --pg-bg-hover:    color-mix(in srgb, var(--pg-bg-hover-base)    var(--pg-immersive-alpha, 100%), transparent);
+}

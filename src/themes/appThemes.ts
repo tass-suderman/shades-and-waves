@@ -80,6 +80,12 @@ export function applyTheme(theme: AppTheme): void {
   const root = document.documentElement
   for (const [prop, value] of Object.entries(theme.vars)) {
     root.style.setProperty(prop, value)
+    // Immersive mode uses color-mix() to blend backgrounds with transparency.
+    // Store a stable -base copy of every background variable so the mix
+    // source is always the original opaque colour, not a previously mixed one.
+    if (prop.startsWith('--pg-bg-')) {
+      root.style.setProperty(`${prop}-base`, value)
+    }
   }
 }
 

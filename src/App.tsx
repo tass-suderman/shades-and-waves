@@ -14,12 +14,17 @@ import AboutPane from './components/about/AboutPane'
 import { DEFAULT_SHADER } from './shaders/default'
 import { applyTheme, getThemeByName } from './themes/appThemes'
 import { useMediaStreams } from './hooks/useMediaStreams'
+import { useLocalStorage } from './hooks/useLocalStorage'
 
 export const LS_GLSL_CODE = 'shader-playground:glsl-code'
 const LS_THEME = 'shader-playground:theme'
 const LS_VIM_MODE = 'shader-playground:vim-mode'
 const LS_VOLUME = 'shader-playground:volume'
 const LS_MUTED = 'shader-playground:muted'
+const LS_DISPLAY_MODE = 'shader-playground:display-mode'
+const LS_IMMERSIVE_OPACITY = 'shader-playground:immersive-opacity'
+
+type DisplayMode = 'default' | 'immersive'
 
 // Computed once at module load – used to seed the initial shader state so the
 // last-saved shader is both displayed in the editor and running on the GPU
@@ -67,13 +72,12 @@ export default function App() {
   /** On mobile the canvas occupies this % of viewport height (editor gets the rest) */
   const [mobileShaderRatio, setMobileShaderRatio] = useState(50)
   const [editorCollapsed, setEditorCollapsed] = useState(false)
-  const [vimMode, setVimMode] = useState<boolean>(() => localStorage.getItem(LS_VIM_MODE) === 'true')
-  const [themeName, setThemeName] = useState<string>(() => localStorage.getItem(LS_THEME) ?? 'kanagawa')
-  const [volume, setVolume] = useState<number>(() => {
-    const stored = localStorage.getItem(LS_VOLUME)
-    return stored !== null ? Number(stored) : 50
-  })
-  const [muted, setMuted] = useState<boolean>(() => localStorage.getItem(LS_MUTED) === 'true')
+  const [vimMode, setVimMode] = useLocalStorage(LS_VIM_MODE, false)
+  const [themeName, setThemeName] = useLocalStorage(LS_THEME, 'kanagawa')
+  const [volume, setVolume] = useLocalStorage(LS_VOLUME, 50)
+  const [muted, setMuted] = useLocalStorage(LS_MUTED, false)
+  const [displayMode, setDisplayMode] = useLocalStorage<DisplayMode>(LS_DISPLAY_MODE, 'default')
+  const [immersiveOpacity, setImmersiveOpacity] = useLocalStorage(LS_IMMERSIVE_OPACITY, 100)
   const outerContainerRef = useRef<HTMLDivElement>(null)
   const strudelRef = useRef<StrudelPaneHandle>(null)
   const editorRef = useRef<EditorPaneHandle>(null)
@@ -99,28 +103,32 @@ export default function App() {
     applyTheme(getThemeByName(themeName))
   }, [themeName])
 
+  // Apply / remove immersive mode CSS variable and data attribute
+  useEffect(() => {
+    if (displayMode === 'immersive') {
+      document.documentElement.dataset.immersive = 'true'
+      document.documentElement.style.setProperty('--pg-immersive-alpha', `${immersiveOpacity}%`)
+    } else {
+      delete document.documentElement.dataset.immersive
+      document.documentElement.style.removeProperty('--pg-immersive-alpha')
+    }
+  }, [displayMode, immersiveOpacity])
+
   const handleThemeChange = useCallback((name: string) => {
     setThemeName(name)
-    localStorage.setItem(LS_THEME, name)
-  }, [])
+  }, [setThemeName])
 
   const handleVimModeChange = useCallback((enabled: boolean) => {
     setVimMode(enabled)
-    localStorage.setItem(LS_VIM_MODE, String(enabled))
-  }, [])
+  }, [setVimMode])
 
   const handleVolumeChange = useCallback((value: number) => {
     setVolume(value)
-    localStorage.setItem(LS_VOLUME, String(value))
-  }, [])
+  }, [setVolume])
 
   const handleToggleMute = useCallback(() => {
-    setMuted(prev => {
-      const next = !prev
-      localStorage.setItem(LS_MUTED, String(next))
-      return next
-    })
-  }, [])
+    setMuted(!muted)
+  }, [muted, setMuted])
 
   const handleRun = useCallback((code: string) => {
     setShaderSource(code)
@@ -286,6 +294,10 @@ export default function App() {
           onVimModeChange={handleVimModeChange}
           themeName={themeName}
           onThemeChange={handleThemeChange}
+          displayMode={displayMode}
+          onDisplayModeChange={setDisplayMode}
+          immersiveOpacity={immersiveOpacity}
+          onImmersiveOpacityChange={setImmersiveOpacity}
         />
       )}
 
@@ -339,6 +351,46 @@ export default function App() {
   )
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  // ── Immersive mode: shader fills the viewport, editor overlays on top ─────
+  if (displayMode === 'immersive') {
+    return (
+      <Box
+        ref={outerContainerRef}
+        sx={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}
+      >
+        {/* Shader canvas – full viewport, behind the editor */}
+        <Box sx={{ position: 'absolute', inset: 0 }}>
+          <ShaderPane
+            ref={shaderRef}
+            shaderSource={shaderSource}
+            webcamStream={webcamStream}
+            audioStream={audioStream}
+            strudelAnalyser={strudelAnalyser}
+            strudelAudioStream={strudelAudioStream}
+            webcamEnabled={webcamEnabled}
+            micEnabled={micEnabled}
+            volume={volume}
+            muted={muted}
+            onToggleWebcam={handleToggleWebcam}
+            onToggleMic={handleToggleMic}
+            onVolumeChange={handleVolumeChange}
+            onToggleMute={handleToggleMute}
+            onShaderError={setShaderError}
+            editorCollapsed={editorCollapsed}
+            onToggleEditorCollapsed={() => setEditorCollapsed(c => !c)}
+            isMobile={isMobile}
+          />
+        </Box>
+
+        {/* Editor overlay – full viewport, on top of the shader */}
+        <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column' }}>
+          {tabBar}
+          {editorContent}
+        </Box>
+      </Box>
+    )
+  }
 
   if (isMobile) {
     // Mobile: vertical stack – shader on top, editor panel below

@@ -4,6 +4,7 @@ import FileUploadIcon from '@mui/icons-material/FileUpload'
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
 import MusicNoteIcon from '@mui/icons-material/MusicNote'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import SaveIcon from '@mui/icons-material/Save'
 import StopIcon from '@mui/icons-material/Stop'
 
 export interface EditorHeaderProps {
@@ -11,6 +12,7 @@ export interface EditorHeaderProps {
   onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onImport: () => void
   onExport: () => void
+  onSave?: () => void
   onRun: () => void
   titleAriaLabel?: string
   importAriaLabel?: string
@@ -34,6 +36,7 @@ export default function EditorHeader({
   onTitleChange,
   onImport,
   onExport,
+  onSave,
   onRun,
   titleAriaLabel = 'Editor title',
   importAriaLabel = 'Import from file',
@@ -98,6 +101,13 @@ export default function EditorHeader({
         </Tooltip>
       )}
 
+      {onSave && (
+        <Tooltip title="Save to Saved tab">
+          <IconButton size="small" onClick={onSave} aria-label="Save" sx={{ color: 'var(--pg-text-primary)' }}>
+            <SaveIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      )}
       <Tooltip title={importAriaLabel}>
         <IconButton size="small" onClick={onImport} aria-label={importAriaLabel} sx={{ color: 'var(--pg-text-primary)' }}>
           <FileUploadIcon fontSize="small" />

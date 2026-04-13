@@ -55,6 +55,14 @@ interface ShaderPaneProps {
   onRecordingStateChange?: (recording: boolean) => void
   /** Notifies the parent whenever the fullscreen state changes */
   onFullscreenStateChange?: (fullscreen: boolean) => void
+  /** Whether immersive mode is currently active */
+  isImmersive?: boolean
+  /** Callback to toggle immersive mode */
+  onToggleImmersive?: () => void
+  /** Background opacity (0–100) used in immersive mode */
+  immersiveOpacity?: number
+  /** Callback when the immersive opacity slider changes */
+  onImmersiveOpacityChange?: (opacity: number) => void
 }
 
 export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane({
@@ -79,6 +87,10 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   onPlayStateChange,
   onRecordingStateChange,
   onFullscreenStateChange,
+  isImmersive,
+  onToggleImmersive,
+  immersiveOpacity,
+  onImmersiveOpacityChange,
 }: ShaderPaneProps, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -255,6 +267,10 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
           editorCollapsed={editorCollapsed}
           onToggleEditorCollapsed={onToggleEditorCollapsed}
           isMobile={isMobile}
+          isImmersive={isImmersive}
+          onToggleImmersive={onToggleImmersive}
+          immersiveOpacity={immersiveOpacity}
+          onImmersiveOpacityChange={onImmersiveOpacityChange}
         />
       )}
     </Box>

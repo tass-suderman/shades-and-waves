@@ -22,7 +22,6 @@ const LS_THEME = 'shader-playground:theme'
 const LS_VIM_MODE = 'shader-playground:vim-mode'
 const LS_VOLUME = 'shader-playground:volume'
 const LS_MUTED = 'shader-playground:muted'
-const LS_DISPLAY_MODE = 'shader-playground:display-mode'
 const LS_IMMERSIVE_OPACITY = 'shader-playground:immersive-opacity'
 const LS_FONT_SIZE = 'shader-playground:font-size'
 
@@ -78,7 +77,7 @@ export default function App() {
   const [themeName, setThemeName] = useLocalStorage(LS_THEME, 'kanagawa')
   const [volume, setVolume] = useLocalStorage(LS_VOLUME, 50)
   const [muted, setMuted] = useLocalStorage(LS_MUTED, false)
-  const [displayMode, setDisplayMode] = useLocalStorage<DisplayMode>(LS_DISPLAY_MODE, 'default')
+  const [displayMode, setDisplayMode] = useState<DisplayMode>('default')
   const [immersiveOpacity, setImmersiveOpacity] = useLocalStorage(LS_IMMERSIVE_OPACITY, 50)
   const [fontSize, setFontSize] = useLocalStorage(LS_FONT_SIZE, 13)
   // State mirrored from ShaderPane for use in the immersive controls bar
@@ -124,6 +123,10 @@ export default function App() {
   const handleThemeChange = useCallback((name: string) => {
     setThemeName(name)
   }, [setThemeName])
+
+  const handleToggleImmersive = useCallback(() => {
+    setDisplayMode(m => m === 'immersive' ? 'default' : 'immersive')
+  }, [])
 
   const handleVimModeChange = useCallback((enabled: boolean) => {
     setVimMode(enabled)
@@ -301,10 +304,6 @@ export default function App() {
           onVimModeChange={handleVimModeChange}
           themeName={themeName}
           onThemeChange={handleThemeChange}
-          displayMode={displayMode}
-          onDisplayModeChange={setDisplayMode}
-          immersiveOpacity={immersiveOpacity}
-          onImmersiveOpacityChange={setImmersiveOpacity}
           fontSize={fontSize}
           onFontSizeChange={setFontSize}
         />
@@ -396,17 +395,17 @@ export default function App() {
           />
         </Box>
 
-        {/* Layer 1 – Editor overlay, semi-transparent backgrounds */}
+        {/* Layer 1 – Editor overlay + controls bar stacked in one flex column */}
         <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column' }}>
-          {tabBar}
-          {/* Flex container so editorContent's flex:1 fills the remaining space */}
+          {/* Editor area – flex:1 so it fills space above the controls bar */}
           <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            {editorContent}
+            {tabBar}
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              {editorContent}
+            </Box>
           </Box>
-        </Box>
 
-        {/* Layer 2 – ShaderControls bar, always on top */}
-        <Box sx={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 2 }}>
+          {/* Controls bar sits at the bottom and takes its natural height */}
           <ShaderControls
             isPlaying={immersiveShaderPlaying}
             isRecording={immersiveShaderRecording}
@@ -425,6 +424,10 @@ export default function App() {
             onStopRecording={() => shaderRef.current?.stopRecording()}
             onToggleFullscreen={() => shaderRef.current?.toggleFullscreen()}
             isMobile={isMobile}
+            isImmersive={true}
+            onToggleImmersive={handleToggleImmersive}
+            immersiveOpacity={immersiveOpacity}
+            onImmersiveOpacityChange={setImmersiveOpacity}
           />
         </Box>
       </Box>
@@ -459,6 +462,10 @@ export default function App() {
             editorCollapsed={editorCollapsed}
             onToggleEditorCollapsed={() => setEditorCollapsed(c => !c)}
             isMobile={true}
+            isImmersive={false}
+            onToggleImmersive={handleToggleImmersive}
+            immersiveOpacity={immersiveOpacity}
+            onImmersiveOpacityChange={setImmersiveOpacity}
           />
         </Box>
 
@@ -511,6 +518,10 @@ export default function App() {
           editorCollapsed={editorCollapsed}
           onToggleEditorCollapsed={() => setEditorCollapsed(c => !c)}
           isMobile={false}
+          isImmersive={false}
+          onToggleImmersive={handleToggleImmersive}
+          immersiveOpacity={immersiveOpacity}
+          onImmersiveOpacityChange={setImmersiveOpacity}
         />
       </Box>
 

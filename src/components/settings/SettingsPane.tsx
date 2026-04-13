@@ -12,27 +12,20 @@ import FormControl from '@mui/material/FormControl'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
-import Slider from '@mui/material/Slider'
 import Typography from '@mui/material/Typography'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
 import { ALL_THEMES } from '../../themes/appThemes'
-
-type DisplayMode = 'default' | 'immersive'
 
 interface SettingsPaneProps {
   vimMode: boolean
   onVimModeChange: (enabled: boolean) => void
   themeName: string
   onThemeChange: (name: string) => void
-  displayMode: DisplayMode
-  onDisplayModeChange: (mode: DisplayMode) => void
-  immersiveOpacity: number
-  onImmersiveOpacityChange: (opacity: number) => void
   fontSize: number
   onFontSizeChange: (size: number) => void
 }
 
-export default function SettingsPane({ vimMode, onVimModeChange, themeName, onThemeChange, displayMode, onDisplayModeChange, immersiveOpacity, onImmersiveOpacityChange, fontSize, onFontSizeChange }: SettingsPaneProps) {
+export default function SettingsPane({ vimMode, onVimModeChange, themeName, onThemeChange, fontSize, onFontSizeChange }: SettingsPaneProps) {
   const [resetDialogOpen, setResetDialogOpen] = useState(false)
 
   const handleResetConfirm = useCallback(() => {
@@ -160,91 +153,6 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
               </Select>
             </FormControl>
           </Box>
-        </Box>
-
-        <Divider sx={{ borderColor: 'var(--pg-border-faint)' }} />
-
-        {/* ---- View mode ---- */}
-        <Box>
-          <Typography variant="body2" sx={{ color: 'var(--pg-text-primary)', fontWeight: 600, mb: 1 }}>
-            View Mode
-          </Typography>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <Select
-              value={displayMode}
-              onChange={(e) => onDisplayModeChange(e.target.value as DisplayMode)}
-              sx={{
-                color: 'var(--pg-text-primary)',
-                bgcolor: 'var(--pg-bg-button)',
-                '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'var(--pg-border-default)',
-                },
-                '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'var(--pg-border-hover)',
-                },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'var(--pg-accent)',
-                },
-                '& .MuiSvgIcon-root': {
-                  color: 'var(--pg-text-muted)',
-                },
-              }}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    bgcolor: 'var(--pg-bg-header)',
-                    color: 'var(--pg-text-primary)',
-                    border: '1px solid var(--pg-border-default)',
-                  },
-                },
-              }}
-            >
-              {([
-                { value: 'default', label: 'Default' },
-                { value: 'immersive', label: 'Immersive' },
-              ] as const).map(({ value, label }) => (
-                <MenuItem
-                  key={value}
-                  value={value}
-                  sx={{
-                    color: 'var(--pg-text-primary)',
-                    '&:hover': { bgcolor: 'var(--pg-bg-button)' },
-                    '&.Mui-selected': { bgcolor: 'var(--pg-bg-button)' },
-                    '&.Mui-selected:hover': { bgcolor: 'var(--pg-divider-default)' },
-                  }}
-                >
-                  {label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {displayMode === 'immersive' && (
-            <Box sx={{ mt: 2, maxWidth: 320 }}>
-              <Typography variant="body2" sx={{ color: 'var(--pg-text-primary)', mb: 0.5 }}>
-                Background opacity: {immersiveOpacity}%
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'var(--pg-text-muted)', display: 'block', mb: 1 }}>
-                Controls the opacity of all editor backgrounds. Text always remains fully opaque.
-              </Typography>
-              <Slider
-                value={immersiveOpacity}
-                onChange={(_e, val) => onImmersiveOpacityChange(val as number)}
-                min={0}
-                max={100}
-                step={1}
-                sx={{
-                  color: 'var(--pg-accent)',
-                  '& .MuiSlider-thumb': {
-                    bgcolor: 'var(--pg-accent)',
-                  },
-                  '& .MuiSlider-rail': {
-                    bgcolor: 'var(--pg-border-default)',
-                  },
-                }}
-              />
-            </Box>
-          )}
         </Box>
 
         <Divider sx={{ borderColor: 'var(--pg-border-faint)' }} />

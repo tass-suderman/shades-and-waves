@@ -61,30 +61,23 @@ export function useSavedContent(): SavedContentStorage {
   const [savedPatterns, setSavedPatterns] = useLocalStorage<SavedEntry[]>(SAVED_KEYS.savedPatterns, [])
 
   const saveShader = useCallback((title: string, content: string) => {
-    const filtered = savedShaders.filter(e => e.title !== title)
-    setSavedShaders([...filtered, { title, content, savedAt: Date.now() }])
-  }, [savedShaders, setSavedShaders])
+    setSavedShaders(prev => [...prev.filter(e => e.title !== title), { title, content, savedAt: Date.now() }])
+  }, [setSavedShaders])
 
   const savePattern = useCallback((title: string, content: string) => {
-    const filtered = savedPatterns.filter(e => e.title !== title)
-    setSavedPatterns([...filtered, { title, content, savedAt: Date.now() }])
-  }, [savedPatterns, setSavedPatterns])
+    setSavedPatterns(prev => [...prev.filter(e => e.title !== title), { title, content, savedAt: Date.now() }])
+  }, [setSavedPatterns])
 
   const deleteShader = useCallback((title: string) => {
-    setSavedShaders(savedShaders.filter(e => e.title !== title))
-  }, [savedShaders, setSavedShaders])
+    setSavedShaders(prev => prev.filter(e => e.title !== title))
+  }, [setSavedShaders])
 
   const deletePattern = useCallback((title: string) => {
-    setSavedPatterns(savedPatterns.filter(e => e.title !== title))
-  }, [savedPatterns, setSavedPatterns])
+    setSavedPatterns(prev => prev.filter(e => e.title !== title))
+  }, [setSavedPatterns])
 
-  const hasExistingShader = useCallback((title: string) => {
-    return savedShaders.some(e => e.title === title)
-  }, [savedShaders])
-
-  const hasExistingPattern = useCallback((title: string) => {
-    return savedPatterns.some(e => e.title === title)
-  }, [savedPatterns])
+  const hasExistingShader = (title: string) => savedShaders.some(e => e.title === title)
+  const hasExistingPattern = (title: string) => savedPatterns.some(e => e.title === title)
 
   const clearAll = useCallback(() => {
     setSavedShaders([])

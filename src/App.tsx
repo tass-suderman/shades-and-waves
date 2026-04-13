@@ -393,8 +393,8 @@ export default function App() {
         {/* Layer 1 – Editor overlay, semi-transparent backgrounds */}
         <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column' }}>
           {tabBar}
-          {/* Leave room at the bottom for the controls bar */}
-          <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          {/* Flex container so editorContent's flex:1 fills the remaining space */}
+          <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             {editorContent}
           </Box>
         </Box>

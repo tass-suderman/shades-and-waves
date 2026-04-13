@@ -52,9 +52,16 @@ html, body, #root {
   background-color: transparent !important;
 }
 
-/* CodeMirror (used by the Strudel pane) backgrounds */
+/* CodeMirror (used by the Strudel pane) backgrounds.
+   Covers the root editor element, its scroller/content/gutters, and the
+   <strudel-editor> custom element that wraps it all.  Both background-color
+   and the background shorthand are reset so that theme injections are
+   overridden regardless of which property they use. */
+:root[data-immersive='true'] strudel-editor,
 :root[data-immersive='true'] .cm-editor,
 :root[data-immersive='true'] .cm-scroller,
-:root[data-immersive='true'] .cm-gutters {
+:root[data-immersive='true'] .cm-gutters,
+:root[data-immersive='true'] .cm-content {
   background-color: transparent !important;
+  background: transparent !important;
 }

@@ -24,6 +24,7 @@ const LS_VOLUME = 'shader-playground:volume'
 const LS_MUTED = 'shader-playground:muted'
 const LS_DISPLAY_MODE = 'shader-playground:display-mode'
 const LS_IMMERSIVE_OPACITY = 'shader-playground:immersive-opacity'
+const LS_FONT_SIZE = 'shader-playground:font-size'
 
 type DisplayMode = 'default' | 'immersive'
 
@@ -79,6 +80,7 @@ export default function App() {
   const [muted, setMuted] = useLocalStorage(LS_MUTED, false)
   const [displayMode, setDisplayMode] = useLocalStorage<DisplayMode>(LS_DISPLAY_MODE, 'default')
   const [immersiveOpacity, setImmersiveOpacity] = useLocalStorage(LS_IMMERSIVE_OPACITY, 50)
+  const [fontSize, setFontSize] = useLocalStorage(LS_FONT_SIZE, 13)
   // State mirrored from ShaderPane for use in the immersive controls bar
   const [immersiveShaderPlaying, setImmersiveShaderPlaying] = useState(true)
   const [immersiveShaderRecording, setImmersiveShaderRecording] = useState(false)
@@ -303,6 +305,8 @@ export default function App() {
           onDisplayModeChange={setDisplayMode}
           immersiveOpacity={immersiveOpacity}
           onImmersiveOpacityChange={setImmersiveOpacity}
+          fontSize={fontSize}
+          onFontSizeChange={setFontSize}
         />
       )}
 
@@ -332,6 +336,7 @@ export default function App() {
           shaderError={shaderError}
           vimMode={vimMode}
           themeName={themeName}
+          fontSize={fontSize}
         />
       </Box>
 
@@ -350,6 +355,7 @@ export default function App() {
           themeName={themeName}
           volume={volume}
           muted={muted}
+          fontSize={fontSize}
         />
       </Box>
     </Box>

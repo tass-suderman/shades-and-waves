@@ -1,7 +1,7 @@
 import { forwardRef, useRef, useState, useCallback, useEffect, useImperativeHandle } from 'react'
 import Box from '@mui/material/Box'
-import { useWebGL } from '../hooks/useWebGL'
-import ShaderControls from './shader/ShaderControls'
+import { useWebGL } from '../../hooks/useWebGL'
+import ShaderControls from './ShaderControls'
 
 // Download a blob via a temporary anchor element (fallback when showSaveFilePicker is unavailable)
 function downloadBlob(blob: Blob, filename: string): void {

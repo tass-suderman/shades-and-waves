@@ -4,10 +4,10 @@ import { StrudelMirror } from '@strudel/codemirror'
 import { evalScope } from '@strudel/core'
 import { webaudioOutput, getAudioContext, initAudioOnFirstClick, getSuperdoughAudioController, registerSynthSounds, registerZZFXSounds, soundAlias } from '@strudel/webaudio'
 import { transpiler } from '@strudel/transpiler'
-import ShaderHeader from './ShaderHeader'
-import StrudelError from './strudel/StrudelError'
-import SoundsPanel from './strudel/SoundsPanel'
-import { registerInstruments } from '../strudel/instruments'
+import EditorHeader from '../editor/EditorHeader'
+import StrudelError from '../strudel/StrudelError'
+import SoundsPanel from '../strudel/SoundsPanel'
+import { registerInstruments } from '../../strudel/instruments'
 // @strudel/codemirror ships no TypeScript declarations; augment the methods we use
 type StrudelMirrorExt = StrudelMirror & {
   changeSetting: (key: string, value: unknown) => void
@@ -342,7 +342,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
 
   return (
     <Box ref={soundsPaneRef} sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'var(--pg-bg-panel)' }}>
-      <ShaderHeader
+      <EditorHeader
         title={strudelTitle}
         isPlaying={isPlaying}
         onTitleChange={handleTitleChange}

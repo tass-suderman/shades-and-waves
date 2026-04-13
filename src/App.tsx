@@ -5,12 +5,12 @@ import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import type { SxProps, Theme } from '@mui/material/styles'
-import ShaderPane, { type ShaderPaneHandle } from './components/ShaderPane'
-import EditorPane, { type EditorPaneHandle } from './components/EditorPane'
-import StrudelPane, { type StrudelPaneHandle } from './components/StrudelPane'
-import SettingsPane from './components/SettingsPane'
-import CombinedExamplesPanel from './components/CombinedExamplesPanel'
-import AboutPane from './components/AboutPane'
+import ShaderPane, { type ShaderPaneHandle } from './components/shader/ShaderPane'
+import EditorPane, { type EditorPaneHandle } from './components/editor/EditorPane'
+import StrudelPane, { type StrudelPaneHandle } from './components/strudel/StrudelPane'
+import SettingsPane from './components/settings/SettingsPane'
+import CombinedExamplesPanel from './components/editor/CombinedExamplesPanel'
+import AboutPane from './components/about/AboutPane'
 import { DEFAULT_SHADER } from './shaders/default'
 import { applyTheme, getThemeByName } from './themes/appThemes'
 import { useMediaStreams } from './hooks/useMediaStreams'
@@ -129,32 +129,31 @@ export default function App() {
   // Global keyboard shortcuts (capture phase so they fire before Monaco / CodeMirror)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+			const handleKeyboardEvent = (e: KeyboardEvent, keyboardAction: () => void) => {
+				e.preventDefault()
+				e.stopPropagation()
+				keyboardAction()
+			}
+
       // Ctrl+Enter / Cmd+Enter → Play Shader (run/compile) and unpause if paused
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault()
-        e.stopPropagation()
-        setShaderSource(pendingSourceRef.current)
-        shaderRef.current?.unpause()
+				handleKeyboardEvent(e, () => shaderRef.current?.unpause())
         return
       }
       // Ctrl+. / Cmd+. → Toggle Shader pause/unpause
       if ((e.ctrlKey || e.metaKey) && e.key === '.') {
-        e.preventDefault()
-        e.stopPropagation()
-        shaderRef.current?.togglePlay()
+				handleKeyboardEvent(e, () => shaderRef.current?.togglePlay())
         return
       }
       // Alt+Enter → Play Strudel
       if (e.altKey && e.key === 'Enter') {
-        e.preventDefault()
-        e.stopPropagation()
+				handleKeyboardEvent(e, () => strudelRef.current?.play())
         strudelRef.current?.play()
         return
       }
       // Alt+. → Pause Strudel
       if (e.altKey && e.key === '.') {
-        e.preventDefault()
-        e.stopPropagation()
+				handleKeyboardEvent(e, () => strudelRef.current?.pause())
         strudelRef.current?.pause()
       }
     }

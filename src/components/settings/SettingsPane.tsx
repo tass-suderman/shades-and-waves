@@ -10,12 +10,11 @@ import DialogTitle from '@mui/material/DialogTitle'
 import Divider from '@mui/material/Divider'
 import FormControl from '@mui/material/FormControl'
 import FormControlLabel from '@mui/material/FormControlLabel'
-import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
 import Typography from '@mui/material/Typography'
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
-import { ALL_THEMES } from '../themes/appThemes'
+import { ALL_THEMES } from '../../themes/appThemes'
 
 interface SettingsPaneProps {
   vimMode: boolean
@@ -62,7 +61,7 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
       </Box>
 
       {/* Settings content */}
-      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3, maxWidth: 480 }}>
+      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
 
         {/* ---- Reset Data ---- */}
         <Box>
@@ -119,17 +118,8 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
             Theme
           </Typography>
           <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel
-              sx={{
-                color: 'var(--pg-text-muted)',
-                '&.Mui-focused': { color: 'var(--pg-accent)' },
-              }}
-            >
-              Theme
-            </InputLabel>
             <Select
               value={themeName}
-              label="Theme"
               onChange={(e) => onThemeChange(e.target.value)}
               sx={{
                 color: 'var(--pg-text-primary)',
@@ -202,8 +192,7 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                   minWidth: 110,
-                  display: 'inline-block',
-                  textAlign: 'center',
+                  display: 'inline-block'
                 }}
               >
                 {keys}

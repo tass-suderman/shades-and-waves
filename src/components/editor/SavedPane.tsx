@@ -67,12 +67,13 @@ function SavedSection({
         sx={{
           px: 2,
           py: 1,
-          color: 'var(--pg-text-muted)',
+          color: 'textColor.muted',
           fontFamily: 'monospace',
           fontSize: '0.7rem',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
-          borderBottom: '1px solid var(--pg-border-faint)',
+          borderBottom: '1px solid',
+					borderColor: 'border.faint',
         }}
       >
         {heading}
@@ -89,7 +90,7 @@ function SavedSection({
                   edge="end"
                   aria-label={`Delete ${entry.title}`}
                   onClick={() => onDelete(entry.title)}
-                  sx={{ color: 'var(--pg-text-muted)', '&:hover': { color: '#ff8080' } }}
+                  sx={{ color: 'textColor.muted', '&:hover': { color: '#ff8080' } }}
                 >
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
@@ -102,14 +103,14 @@ function SavedSection({
                 px: 2,
                 py: 0.75,
                 pr: 6,
-                '&:hover': { bgcolor: 'var(--pg-bg-button)' },
+                '&:hover': { bgcolor: 'background.button' },
               }}
             >
               <ListItemText
                 primary={entry.title}
                 primaryTypographyProps={{
                   sx: {
-                    color: 'var(--pg-text-primary)',
+                    color: 'textColor.primary',
                     fontFamily: 'monospace',
                     fontSize: '0.875rem',
                   },
@@ -182,21 +183,22 @@ export default function SavedPane({
   }
 
   return (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'var(--pg-bg-panel)' }}>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.panel' }}>
       {/* Header */}
       <Box
         sx={{
           px: 2,
           py: 1,
-          bgcolor: 'var(--pg-bg-header)',
-          borderBottom: '1px solid var(--pg-border-subtle)',
+          bgcolor: 'background.header',
+          borderBottom: '1px solid',
+					borderColor: 'border.subtle',
           flexShrink: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
       >
-        <Typography variant="subtitle2" sx={{ color: 'var(--pg-text-primary)', fontFamily: 'monospace' }}>
+        <Typography variant="subtitle2" sx={{ color: 'textColor.primary', fontFamily: 'monospace' }}>
           Saved
         </Typography>
         {hasSavedContent && (
@@ -205,7 +207,7 @@ export default function SavedPane({
               size="small"
               onClick={handleExportAll}
               aria-label="Export all saved content"
-              sx={{ color: 'var(--pg-text-primary)' }}
+              sx={{ color: 'textColor.primary' }}
             >
               <DownloadIcon fontSize="small" />
             </IconButton>
@@ -222,14 +224,15 @@ export default function SavedPane({
               sx={{
                 px: 2,
                 py: 0.75,
-                bgcolor: 'var(--pg-bg-header)',
-                borderBottom: '1px solid var(--pg-border-faint)',
+                bgcolor: 'background.header',
+                borderBottom: '1px solid',
+								borderColor: 'border.faint',
               }}
             >
               <Typography
                 variant="subtitle2"
                 sx={{
-                  color: 'var(--pg-text-primary)',
+                  color: 'textColor.primary',
                   fontFamily: 'monospace',
                   fontSize: '0.75rem',
                   fontWeight: 700,
@@ -254,7 +257,7 @@ export default function SavedPane({
               onDelete={(title) => handleDeleteRequest(title, 'pattern')}
             />
 
-            <Divider sx={{ borderColor: 'var(--pg-border-faint)', my: 1 }} />
+            <Divider sx={{ borderColor: 'border.faint', my: 1 }} />
           </>
         )}
 
@@ -263,14 +266,14 @@ export default function SavedPane({
           sx={{
             px: 2,
             py: 0.75,
-            bgcolor: 'var(--pg-bg-header)',
-            borderBottom: '1px solid var(--pg-border-faint)',
+            bgcolor: 'background.header',
+            borderBottom: 'border.faint',
           }}
         >
           <Typography
             variant="subtitle2"
             sx={{
-              color: 'var(--pg-text-primary)',
+              color: 'textColor.primary',
               fontFamily: 'monospace',
               fontSize: '0.75rem',
               fontWeight: 700,
@@ -294,30 +297,31 @@ export default function SavedPane({
         fullWidth
         PaperProps={{
           sx: {
-            bgcolor: 'var(--pg-bg-header)',
-            color: 'var(--pg-text-primary)',
-            border: '1px solid var(--pg-border-default)',
+            bgcolor: 'background.header',
+            color: 'textColor.primary',
+            border: '1px solid',
+						borderColor: 'border.default',
           },
         }}
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
-          <Typography variant="h6" sx={{ fontFamily: 'monospace', fontSize: '1rem', color: 'var(--pg-text-primary)' }}>
+          <Typography variant="h6" sx={{ fontFamily: 'monospace', fontSize: '1rem', color: 'textColor.primary' }}>
             Delete entry?
           </Typography>
-          <IconButton size="small" onClick={handleDeleteCancel} aria-label="Close dialog" sx={{ color: 'var(--pg-text-muted)' }}>
+          <IconButton size="small" onClick={handleDeleteCancel} aria-label="Close dialog" sx={{ color: 'textColor.muted' }}>
             <CloseIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 0 }}>
-          <Typography variant="body2" sx={{ color: 'var(--pg-text-muted)', fontFamily: 'monospace' }}>
-            Delete <strong style={{ color: 'var(--pg-accent)' }}>{pendingDelete?.title}</strong>? This action cannot be undone.
+          <Typography variant="body2" sx={{ color: 'textColor.muted', fontFamily: 'monospace' }}>
+            Delete <strong style={{ color: 'accent' }}>{pendingDelete?.title}</strong>? This action cannot be undone.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 2, pb: 2 }}>
           <Button
             onClick={handleDeleteCancel}
             size="small"
-            sx={{ textTransform: 'none', color: 'var(--pg-text-muted)' }}
+            sx={{ textTransform: 'none', color: 'textColor.muted' }}
           >
             Cancel
           </Button>

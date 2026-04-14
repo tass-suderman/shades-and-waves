@@ -1,18 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Checkbox from '@mui/material/Checkbox'
-import Collapse from '@mui/material/Collapse'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogTitle from '@mui/material/DialogTitle'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import IconButton from '@mui/material/IconButton'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import Typography from '@mui/material/Typography'
-import CloseIcon from '@mui/icons-material/Close'
+import { Box, Button, Checkbox, Collapse, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, ThemeProvider, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import { Close } from '@mui/icons-material'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import type { SxProps, Theme } from '@mui/material/styles'
 import ShaderPane, { type ShaderPaneHandle } from './components/shader/ShaderPane'
@@ -22,10 +10,10 @@ import StrudelPane, { type StrudelPaneHandle } from './components/strudel/Strude
 import SettingsPane from './components/settings/SettingsPane'
 import SavedPane from './components/editor/SavedPane'
 import AboutPane from './components/about/AboutPane'
-import { applyTheme, getThemeByName } from './themes/appThemes'
 import { useMediaStreams } from './hooks/useMediaStreams'
 import { useAppStorage, getInitialGlslCode } from './hooks/useAppStorage'
 import { useSavedContent } from './hooks/useSavedContent'
+import { useTheme } from './hooks/useTheme'
 
 type DisplayMode = 'default' | 'immersive'
 
@@ -41,7 +29,7 @@ type ButtonVariant = 'editor' | 'utility'
 
 // Shared base styles for all top-bar toggle buttons
 const baseTabSx = {
-  backgroundColor: 'var(--pg-bg-button)',
+  backgroundColor: 'background.button',
   borderRadius: '15px',
   fontSize: '0.75rem',
   py: 0.25,
@@ -49,20 +37,20 @@ const baseTabSx = {
   textTransform: 'none',
   flex: 1,
   '&.Mui-selected': {
-    backgroundColor: 'var(--pg-accent)',
-    color: 'var(--pg-text-hover)',
+    backgroundColor: 'accent',
+    color: 'textColor.hover',
   },
   '&:hover': {
-    backgroundColor: 'var(--pg-bg-hover)',
-    color: 'var(--pg-text-hover)',
+    backgroundColor: 'background.hover',
+    color: 'textColor.hover',
   },
 } as const
 
 const tabSxByVariant: Record<ButtonVariant, object> = {
   // Editor mode tabs (GLSL / Strudel) – primary text colour
-  editor: { ...baseTabSx, color: 'var(--pg-text-button)' },
+  editor: { ...baseTabSx, color: 'textColor.button'},
   // Utility tabs (Examples / Settings / About) – warm complementary text colour
-  utility: { ...baseTabSx, color: 'var(--pg-text-util-tab)' },
+  utility: { ...baseTabSx, color: 'textColor.utilTab' },
 }
 
 /** A single tab in the top bar with a typed colour variant. */
@@ -86,7 +74,6 @@ export default function App() {
   const [mobileShaderRatio, setMobileShaderRatio] = useState(50)
   const [editorCollapsed, setEditorCollapsed] = useState(false)
   const {
-    theme: themeName, setTheme: setThemeName,
     vimMode, setVimMode,
     volume, setVolume,
     muted, setMuted,
@@ -114,6 +101,8 @@ export default function App() {
 
   /** True when the viewport is narrow enough to be considered a phone/small device */
   const isMobile = useMediaQuery('(max-width: 600px)')
+	
+	const { muiTheme, currentTheme, changeTheme } = useTheme();
 
   const {
     webcamEnabled,
@@ -123,11 +112,6 @@ export default function App() {
     handleToggleWebcam,
     handleToggleMic,
   } = useMediaStreams()
-
-  // Apply the active theme as CSS custom properties whenever it changes
-  useEffect(() => {
-    applyTheme(getThemeByName(themeName))
-  }, [themeName])
 
   // Apply / remove immersive mode CSS variable and data attribute
   useEffect(() => {
@@ -140,9 +124,9 @@ export default function App() {
     }
   }, [displayMode, immersiveOpacity])
 
-  const handleThemeChange = useCallback((name: string) => {
-    setThemeName(name)
-  }, [setThemeName])
+  const handleThemeChange = ((name: string) => {
+		changeTheme(name)
+  })
 
   const handleToggleImmersive = useCallback(() => {
     setDisplayMode(m => m === 'immersive' ? 'default' : 'immersive')
@@ -339,8 +323,8 @@ export default function App() {
     <Box sx={{
       px: 1,
       py: 0.5,
-      bgcolor: 'var(--pg-bg-header)',
-      borderBottom: '1px solid var(--pg-border-subtle)',
+      bgcolor: 'background.header',
+      borderBottom: 'border.subtle',
       flexShrink: 0,
       display: 'flex',
       alignItems: 'center',
@@ -378,7 +362,7 @@ export default function App() {
         <SettingsPane
           vimMode={vimMode}
           onVimModeChange={handleVimModeChange}
-          themeName={themeName}
+          themeName={currentTheme.name}
           onThemeChange={handleThemeChange}
           fontSize={fontSize}
           onFontSizeChange={setFontSize}
@@ -418,7 +402,7 @@ export default function App() {
           onCodeChange={setPendingSource}
           shaderError={shaderError}
           vimMode={vimMode}
-          themeName={themeName}
+          themeName={currentTheme.name}
           fontSize={fontSize}
           onSave={handleSaveShader}
         />
@@ -436,7 +420,7 @@ export default function App() {
           onAnalyserReady={setStrudelAnalyser}
           onAudioStreamReady={setStrudelAudioStream}
           vimMode={vimMode}
-          themeName={themeName}
+          themeName={currentTheme.name}
           volume={volume}
           muted={muted}
           fontSize={fontSize}
@@ -457,23 +441,24 @@ export default function App() {
       fullWidth
       PaperProps={{
         sx: {
-          bgcolor: 'var(--pg-bg-header)',
-          color: 'var(--pg-text-primary)',
-          border: '1px solid var(--pg-border-default)',
+          bgcolor: 'background.header',
+          color: 'textColor.primary',
+          border: '1px solid',
+					borderColor: 'border.default',
         },
       }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
-        <Typography variant="h6" sx={{ fontFamily: 'monospace', fontSize: '1rem', color: 'var(--pg-text-primary)' }}>
+        <Typography variant="h6" sx={{ fontFamily: 'monospace', fontSize: '1rem', color: 'textColor.primary' }}>
           Overwrite entry?
         </Typography>
-        <IconButton size="small" onClick={handleOverwriteCancel} aria-label="Close dialog" sx={{ color: 'var(--pg-text-muted)' }}>
-          <CloseIcon fontSize="small" />
+        <IconButton size="small" onClick={handleOverwriteCancel} aria-label="Close dialog" sx={{ color: 'textColor.muted' }}>
+          <Close fontSize="small" />
         </IconButton>
       </DialogTitle>
       <DialogContent sx={{ pt: 0 }}>
-        <Typography variant="body2" sx={{ color: 'var(--pg-text-muted)', fontFamily: 'monospace', mb: 1.5 }}>
-          A saved entry named <strong style={{ color: 'var(--pg-accent)' }}>{overwritePending?.title}</strong> already exists. Saving will overwrite it.
+        <Typography variant="body2" sx={{ color: 'textColor.muted', fontFamily: 'monospace', mb: 1.5 }}>
+          A saved entry named <strong style={{ color: 'accent' }}>{overwritePending?.title}</strong> already exists. Saving will overwrite it.
         </Typography>
         <FormControlLabel
           control={
@@ -482,13 +467,13 @@ export default function App() {
               onChange={(e) => setDontShowAgain(e.target.checked)}
               size="small"
               sx={{
-                color: 'var(--pg-border-default)',
-                '&.Mui-checked': { color: 'var(--pg-accent)' },
+                color: 'border.default',
+                '&.Mui-checked': { color: 'accent' },
               }}
             />
           }
           label={
-            <Typography variant="body2" sx={{ color: 'var(--pg-text-muted)', fontSize: '0.8rem' }}>
+            <Typography variant="body2" sx={{ color: 'textColor.muted', fontSize: '0.8rem' }}>
               Don't show this again
             </Typography>
           }
@@ -498,7 +483,7 @@ export default function App() {
         <Button
           onClick={handleOverwriteCancel}
           size="small"
-          sx={{ textTransform: 'none', color: 'var(--pg-text-muted)' }}
+          sx={{ textTransform: 'none', color: 'textColor.muted' }}
         >
           Cancel
         </Button>
@@ -593,7 +578,7 @@ export default function App() {
     return (
       <Box
         ref={outerContainerRef}
-        sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden', bgcolor: 'var(--pg-bg-app)' }}
+        sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', overflow: 'hidden', bgcolor: 'background.app' }}
       >
         {/* Top: shader canvas */}
         <Box sx={{ height: editorCollapsed ? '100%' : `${mobileShaderRatio}%`, flexShrink: 0, minHeight: 0 }}>
@@ -630,9 +615,9 @@ export default function App() {
             sx={{
               height: '4px',
               cursor: 'row-resize',
-              bgcolor: 'var(--pg-divider-default)',
+              bgcolor: 'border.faint',
               flexShrink: 0,
-              '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
+              '&:hover': { bgcolor: 'border.hover' },
             }}
           />
         )}
@@ -651,59 +636,61 @@ export default function App() {
 
   // Desktop: horizontal layout – shader on left, editor on right
   return (
-    <Box ref={outerContainerRef} sx={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', bgcolor: 'var(--pg-bg-app)' }}>
-      {/* Left: shader canvas */}
-      <Box sx={{ width: editorCollapsed ? '100%' : `${leftRatio}%`, minWidth: 0, flexShrink: 0 }}>
-        <ShaderPane
-          ref={shaderRef}
-          shaderSource={shaderSource}
-          webcamStream={webcamStream}
-          audioStream={audioStream}
-          strudelAnalyser={strudelAnalyser}
-          strudelAudioStream={strudelAudioStream}
-          webcamEnabled={webcamEnabled}
-          micEnabled={micEnabled}
-          volume={volume}
-          muted={muted}
-          onToggleWebcam={handleToggleWebcam}
-          onToggleMic={handleToggleMic}
-          onVolumeChange={handleVolumeChange}
-          onToggleMute={handleToggleMute}
-          onShaderError={setShaderError}
-          editorCollapsed={editorCollapsed}
-          onToggleEditorCollapsed={() => setEditorCollapsed(c => !c)}
-          isMobile={false}
-          isImmersive={false}
-          onToggleImmersive={handleToggleImmersive}
-          immersiveOpacity={immersiveOpacity}
-          onImmersiveOpacityChange={setImmersiveOpacity}
-        />
-      </Box>
+		<ThemeProvider theme={muiTheme}>
+			<Box ref={outerContainerRef} sx={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', bgcolor: 'background.app' }}>
+				{/* Left: shader canvas */}
+				<Box sx={{ width: editorCollapsed ? '100%' : `${leftRatio}%`, minWidth: 0, flexShrink: 0 }}>
+					<ShaderPane
+						ref={shaderRef}
+						shaderSource={shaderSource}
+						webcamStream={webcamStream}
+						audioStream={audioStream}
+						strudelAnalyser={strudelAnalyser}
+						strudelAudioStream={strudelAudioStream}
+						webcamEnabled={webcamEnabled}
+						micEnabled={micEnabled}
+						volume={volume}
+						muted={muted}
+						onToggleWebcam={handleToggleWebcam}
+						onToggleMic={handleToggleMic}
+						onVolumeChange={handleVolumeChange}
+						onToggleMute={handleToggleMute}
+						onShaderError={setShaderError}
+						editorCollapsed={editorCollapsed}
+						onToggleEditorCollapsed={() => setEditorCollapsed(c => !c)}
+						isMobile={false}
+						isImmersive={false}
+						onToggleImmersive={handleToggleImmersive}
+						immersiveOpacity={immersiveOpacity}
+						onImmersiveOpacityChange={setImmersiveOpacity}
+					/>
+				</Box>
 
-      {/* Horizontal drag divider between shader and editor */}
-      {!editorCollapsed && (
-        <Box
-          onMouseDown={handleHorizontalDividerMouseDown}
-          sx={{
-            width: '4px',
-            cursor: 'col-resize',
-            bgcolor: 'var(--pg-divider-default)',
-            flexShrink: 0,
-            '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
-          }}
-        />
-      )}
+				{/* Horizontal drag divider between shader and editor */}
+				{!editorCollapsed && (
+					<Box
+						onMouseDown={handleHorizontalDividerMouseDown}
+						sx={{
+							width: '4px',
+							cursor: 'col-resize',
+							bgcolor: 'border.default',
+							flexShrink: 0,
+							'&:hover': { bgcolor: 'border.faint'},
+						}}
+					/>
+				)}
 
-      {/* Right: editor panel */}
-      <Collapse orientation="horizontal" in={!editorCollapsed} sx={desktopEditorCollapseSx}>
-        <Box sx={{ width: '100%', minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
-          {tabBar}
-          {editorContent}
-        </Box>
-      </Collapse>
+				{/* Right: editor panel */}
+				<Collapse orientation="horizontal" in={!editorCollapsed} sx={desktopEditorCollapseSx}>
+					<Box sx={{ width: '100%', minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+						{tabBar}
+						{editorContent}
+					</Box>
+				</Collapse>
 
-      {overwriteDialog}
-    </Box>
+				{overwriteDialog}
+			</Box>
+		</ThemeProvider>
   )
 }
 

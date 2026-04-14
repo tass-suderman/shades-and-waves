@@ -58,8 +58,9 @@ export default function EditorHeader({
         justifyContent: 'space-between',
         px: 2,
         py: 1,
-        bgcolor: 'var(--pg-bg-header)',
-        borderBottom: '1px solid var(--pg-border-subtle)',
+        bgcolor: 'background.header',
+        borderBottom: '1px solid',
+				borderColor: 'border.subtle',
         flexShrink: 0,
         gap: 1,
       }}
@@ -69,7 +70,7 @@ export default function EditorHeader({
         onChange={onTitleChange}
         inputProps={{ 'aria-label': titleAriaLabel }}
         sx={{
-          color: 'var(--pg-text-primary)',
+          color: 'textColor.primary',
           fontFamily: 'monospace',
           fontSize: '0.875rem',
           flex: 1,
@@ -85,7 +86,7 @@ export default function EditorHeader({
             size="small"
             onClick={onShowSounds}
             aria-label="Available sounds"
-            sx={{ color: soundsActive ? 'var(--pg-accent)' : 'var(--pg-text-primary)' }}
+            sx={{ color: soundsActive ? 'accent' : 'textColor.primary' }}
           >
             <MusicNoteIcon fontSize="small" />
           </IconButton>
@@ -95,7 +96,7 @@ export default function EditorHeader({
       {/* Uniforms button – only for GLSL */}
       {onShowUniforms && (
         <Tooltip title={uniformsActive ? 'Hide uniforms' : 'Available uniforms'}>
-          <IconButton size="small" onClick={onShowUniforms} aria-label="Available uniforms" sx={{ color: uniformsActive ? 'var(--pg-accent)' : 'var(--pg-text-primary)' }}>
+          <IconButton size="small" onClick={onShowUniforms} aria-label="Available uniforms" sx={{ color: uniformsActive ? 'accent' : 'textColor.primary' }}>
             <InfoOutlinedIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -103,18 +104,18 @@ export default function EditorHeader({
 
       {onSave && (
         <Tooltip title="Save to Saved tab">
-          <IconButton size="small" onClick={onSave} aria-label="Save" sx={{ color: 'var(--pg-text-primary)' }}>
+          <IconButton size="small" onClick={onSave} aria-label="Save" sx={{ color: 'textColor.primary' }}>
             <SaveIcon fontSize="small" />
           </IconButton>
         </Tooltip>
       )}
       <Tooltip title={importAriaLabel}>
-        <IconButton size="small" onClick={onImport} aria-label={importAriaLabel} sx={{ color: 'var(--pg-text-primary)' }}>
+        <IconButton size="small" onClick={onImport} aria-label={importAriaLabel} sx={{ color: 'textColor.primary' }}>
           <FileUploadIcon fontSize="small" />
         </IconButton>
       </Tooltip>
       <Tooltip title={exportAriaLabel}>
-        <IconButton size="small" onClick={onExport} aria-label={exportAriaLabel} sx={{ color: 'var(--pg-text-primary)' }}>
+        <IconButton size="small" onClick={onExport} aria-label={exportAriaLabel} sx={{ color: 'textColor.primary' }}>
           <FileDownloadIcon fontSize="small" />
         </IconButton>
       </Tooltip>

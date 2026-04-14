@@ -1,20 +1,7 @@
 import { useCallback, useState } from 'react'
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Checkbox from '@mui/material/Checkbox'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogTitle from '@mui/material/DialogTitle'
-import Divider from '@mui/material/Divider'
-import FormControl from '@mui/material/FormControl'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
-import Typography from '@mui/material/Typography'
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever'
-import { ALL_THEMES } from '../../themes/appThemes'
+import { Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, FormControl, FormControlLabel, MenuItem, Select, Typography} from '@mui/material'
+import { DeleteForever } from '@mui/icons-material'
+import { themes } from '../../themes/Theme'
 
 interface SettingsPaneProps {
   vimMode: boolean
@@ -44,8 +31,8 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        bgcolor: 'var(--pg-bg-panel)',
-        color: 'var(--pg-text-primary)',
+        bgcolor: 'background.panel',
+        color: 'textColor.primary',
         overflow: 'auto',
       }}
     >
@@ -54,12 +41,13 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
         sx={{
           px: 2,
           py: 1,
-          bgcolor: 'var(--pg-bg-header)',
-          borderBottom: '1px solid var(--pg-border-subtle)',
+          bgcolor: 'background.header',
+					borderColor: 'border.subtle',
+          borderBottom: '1px solid',
           flexShrink: 0,
         }}
       >
-        <Typography variant="subtitle2" sx={{ color: 'var(--pg-text-primary)', fontFamily: 'monospace' }}>
+        <Typography variant="subtitle2" sx={{ color: 'textColor.primary', fontFamily: 'monospace' }}>
           Settings
         </Typography>
       </Box>
@@ -69,7 +57,7 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
 
         {/* ---- Editor ---- */}
         <Box>
-          <Typography variant="body2" sx={{ color: 'var(--pg-text-primary)', fontWeight: 600, mb: 0.5 }}>
+          <Typography variant="body2" sx={{ color: 'textColor.primary', fontWeight: 600, mb: 0.5 }}>
             Editor
           </Typography>
           <FormControlLabel
@@ -79,19 +67,19 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
                 onChange={(e) => onVimModeChange(e.target.checked)}
                 size="small"
                 sx={{
-                  color: 'var(--pg-border-default)',
-                  '&.Mui-checked': { color: 'var(--pg-accent)' },
+                  color: 'border.default',
+                  '&.Mui-checked': { color: 'accent' },
                 }}
               />
             }
             label={
-              <Typography variant="body2" sx={{ color: 'var(--pg-text-primary)' }}>
+              <Typography variant="body2" sx={{ color: 'textColor.primary' }}>
                 Vim keybindings
               </Typography>
             }
           />
           <Box sx={{ mt: 1.5 }}>
-            <Typography variant="body2" sx={{ color: 'var(--pg-text-primary)', mb: 0.75 }}>
+            <Typography variant="body2" sx={{ color: 'textColor.primary', mb: 0.75 }}>
               Font size
             </Typography>
             <FormControl size="small" sx={{ minWidth: 120 }}>
@@ -99,19 +87,20 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
                 value={fontSize}
                 onChange={(e) => onFontSizeChange(Number(e.target.value))}
                 sx={{
-                  color: 'var(--pg-text-primary)',
-                  bgcolor: 'var(--pg-bg-button)',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--pg-border-default)' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--pg-border-hover)' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--pg-accent)' },
-                  '& .MuiSvgIcon-root': { color: 'var(--pg-text-muted)' },
+                  color: 'textColor.primary',
+                  bgcolor: 'background.button',
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'border.default' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'border.hover' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'accent' },
+                  '& .MuiSvgIcon-root': { color: 'textColor.muted' },
                 }}
                 MenuProps={{
                   PaperProps: {
                     sx: {
-                      bgcolor: 'var(--pg-bg-header)',
-                      color: 'var(--pg-text-primary)',
-                      border: '1px solid var(--pg-border-default)',
+                      bgcolor: 'background.header',
+                      color: 'textColor.primary',
+											borderColor: 'border.default',
+                      border: '1px solid',
                     },
                   },
                 }}
@@ -121,10 +110,10 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
                     key={size}
                     value={size}
                     sx={{
-                      color: 'var(--pg-text-primary)',
-                      '&:hover': { bgcolor: 'var(--pg-bg-button)' },
-                      '&.Mui-selected': { bgcolor: 'var(--pg-bg-button)' },
-                      '&.Mui-selected:hover': { bgcolor: 'var(--pg-divider-default)' },
+                      color: 'textColor.primary',
+                      '&:hover': { bgcolor: 'background.button' },
+                      '&.Mui-selected': { bgcolor: 'background.button' },
+                      '&.Mui-selected:hover': { bgcolor: 'border.faint' },
                     }}
                   >
                     {size}px
@@ -135,9 +124,9 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
           </Box>
         </Box>
 
-        <Divider sx={{ borderColor: 'var(--pg-border-faint)' }} />
+        <Divider sx={{ borderColor: 'border.faint' }} />
         <Box>
-          <Typography variant="body2" sx={{ color: 'var(--pg-text-primary)', fontWeight: 600, mb: 1 }}>
+          <Typography variant="body2" sx={{ color: 'textColor.primary', fontWeight: 600, mb: 1 }}>
             Theme
           </Typography>
           <FormControl size="small" sx={{ minWidth: 200 }}>
@@ -145,40 +134,41 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
               value={themeName}
               onChange={(e) => onThemeChange(e.target.value)}
               sx={{
-                color: 'var(--pg-text-primary)',
-                bgcolor: 'var(--pg-bg-button)',
+                color: 'textColor.primary',
+                bgcolor: 'background.button',
                 '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'var(--pg-border-default)',
+                  borderColor: 'border.default',
                 },
                 '&:hover .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'var(--pg-border-hover)',
+                  borderColor: 'border.hover',
                 },
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'var(--pg-accent)',
+                  borderColor: 'accent',
                 },
                 '& .MuiSvgIcon-root': {
-                  color: 'var(--pg-text-muted)',
+                  color: 'textColor.muted',
                 },
               }}
               MenuProps={{
                 PaperProps: {
                   sx: {
-                    bgcolor: 'var(--pg-bg-header)',
-                    color: 'var(--pg-text-primary)',
-                    border: '1px solid var(--pg-border-default)',
+                    bgcolor: 'background.header',
+                    color: 'textColor.primary',
+										borderColor: 'border.default',
+                    border: '1px solid',
                   },
                 },
               }}
             >
-              {ALL_THEMES.map(t => (
+              {themes.map(t => (
                 <MenuItem
                   key={t.name}
                   value={t.name}
                   sx={{
-                    color: 'var(--pg-text-primary)',
-                    '&:hover': { bgcolor: 'var(--pg-bg-button)' },
-                    '&.Mui-selected': { bgcolor: 'var(--pg-bg-button)' },
-                    '&.Mui-selected:hover': { bgcolor: 'var(--pg-divider-default)' },
+                    color: 'textColor.primary',
+                    '&:hover': { bgcolor: 'background.button' },
+                    '&.Mui-selected': { bgcolor: 'background.button' },
+                    '&.Mui-selected:hover': { bgcolor: 'border.faint' },
                   }}
                 >
                   {t.label}
@@ -188,11 +178,11 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
           </FormControl>
         </Box>
 
-        <Divider sx={{ borderColor: 'var(--pg-border-faint)' }} />
+        <Divider sx={{ borderColor: 'border.faint' }} />
 
         {/* ---- Keyboard shortcuts ---- */}
         <Box>
-          <Typography variant="body2" sx={{ color: 'var(--pg-text-primary)', fontWeight: 600, mb: 1 }}>
+          <Typography variant="body2" sx={{ color: 'textColor.primary', fontWeight: 600, mb: 1 }}>
             Keyboard Shortcuts
           </Typography>
           {[
@@ -206,12 +196,13 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
                 variant="caption"
                 sx={{
                   fontFamily: 'monospace',
-                  color: 'var(--pg-text-primary)',
-                  bgcolor: 'var(--pg-bg-button)',
+                  color: 'textColor.primary',
+                  bgcolor: 'background.button',
                   px: 0.75,
                   py: 0.25,
                   borderRadius: 0.5,
-                  border: '1px solid var(--pg-border-faint)',
+                  border: '1px solid',
+									borderColor: 'border.faint',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                   minWidth: 110,
@@ -220,18 +211,18 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
               >
                 {keys}
               </Typography>
-              <Typography variant="caption" sx={{ color: 'var(--pg-text-muted)' }}>
+              <Typography variant="caption" sx={{ color: 'textColor.muted' }}>
                 {desc}
               </Typography>
             </Box>
           ))}
         </Box>
 
-        <Divider sx={{ borderColor: 'var(--pg-border-faint)' }} />
+        <Divider sx={{ borderColor: 'border.faint' }} />
 
         {/* ---- Saved Content ---- */}
         <Box>
-          <Typography variant="body2" sx={{ color: 'var(--pg-text-primary)', fontWeight: 600, mb: 0.5 }}>
+          <Typography variant="body2" sx={{ color: 'textColor.primary', fontWeight: 600, mb: 0.5 }}>
             Saved Content
           </Typography>
           <FormControlLabel
@@ -241,34 +232,34 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
                 onChange={(e) => onWarnOnOverwriteChange(e.target.checked)}
                 size="small"
                 sx={{
-                  color: 'var(--pg-border-default)',
-                  '&.Mui-checked': { color: 'var(--pg-accent)' },
+                  color: 'border.default',
+                  '&.Mui-checked': { color: 'accent' },
                 }}
               />
             }
             label={
-              <Typography variant="body2" sx={{ color: 'var(--pg-text-primary)' }}>
+              <Typography variant="body2" sx={{ color: 'textColor.primary' }}>
                 Warn before overwriting a saved entry
               </Typography>
             }
           />
         </Box>
 
-        <Divider sx={{ borderColor: 'var(--pg-border-faint)' }} />
+        <Divider sx={{ borderColor: 'border.faint' }} />
 
         {/* ---- Reset Data ---- */}
         <Box>
-          <Typography variant="body2" sx={{ color: 'var(--pg-text-primary)', fontWeight: 600, mb: 0.5 }}>
+          <Typography variant="body2" sx={{ color: 'textColor.primary', fontWeight: 600, mb: 0.5 }}>
             Data
           </Typography>
-          <Typography variant="caption" sx={{ color: 'var(--pg-text-muted)', display: 'block', mb: 1 }}>
+          <Typography variant="caption" sx={{ color: 'textColor.muted', display: 'block', mb: 1 }}>
             Remove all saved shaders, patterns, and preferences and restore the app to its default state.
           </Typography>
           <Button
             variant="outlined"
             color="error"
             size="small"
-            startIcon={<DeleteForeverIcon />}
+            startIcon={<DeleteForever />}
             onClick={() => setResetDialogOpen(true)}
             sx={{ textTransform: 'none' }}
           >
@@ -283,15 +274,16 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
         onClose={() => setResetDialogOpen(false)}
         PaperProps={{
           sx: {
-            bgcolor: 'var(--pg-bg-header)',
-            color: 'var(--pg-text-primary)',
-            border: '1px solid var(--pg-border-default)',
+            bgcolor: 'background.header',
+            color: 'textColor.primary',
+            border: '1px solid',
+						borderColor: 'border.default',
           },
         }}
       >
-        <DialogTitle sx={{ color: 'var(--pg-text-primary)' }}>Reset all data?</DialogTitle>
+        <DialogTitle sx={{ color: 'textColor.primary' }}>Reset all data?</DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ color: 'var(--pg-text-muted)' }}>
+          <DialogContentText sx={{ color: 'textColor.muted' }}>
             This will permanently delete all saved shaders, patterns, and preferences — including all entries in the Saved Content section. The page will
             reload and everything will return to its default state. This action cannot be undone.
           </DialogContentText>
@@ -299,7 +291,7 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
             onClick={() => setResetDialogOpen(false)}
-            sx={{ color: 'var(--pg-text-muted)', textTransform: 'none' }}
+            sx={{ color: 'textColor.muted', textTransform: 'none' }}
           >
             Cancel
           </Button>

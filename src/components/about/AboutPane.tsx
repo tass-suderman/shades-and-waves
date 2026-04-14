@@ -1,5 +1,4 @@
-import Box from '@mui/material/Box'
-import Link from '@mui/material/Link'
+import { Box, Link } from '@mui/material'
 import Typography from '@mui/material/Typography'
 
 export default function AboutPane() {
@@ -9,38 +8,38 @@ export default function AboutPane() {
         flex: 1,
         overflow: 'auto',
         p: 3,
-        bgcolor: 'var(--pg-bg-panel)',
-        color: 'var(--pg-text-primary)',
+        bgcolor: 'background.panel',
+        color: 'textColor.primary',
         fontFamily: 'monospace',
         fontSize: '0.875rem',
         lineHeight: 1.7,
       }}
     >
-      <Typography variant="h6" sx={{ fontFamily: 'monospace', mb: 2, color: 'var(--pg-text-primary)' }}>
+      <Typography variant="h6" sx={{ fontFamily: 'monospace', mb: 2, color: 'textColor.primary' }}>
         About Shades & Waves
       </Typography>
 
-      <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2, color: 'var(--pg-text-primary)' }}>
+      <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2, color: 'textColor.primary' }}>
         Shades &amp; Waves is a live-coding playground that combines real-time GLSL fragment
         shaders with{' '}
-        <Link href="https://strudel.cc" target="_blank" rel="noopener noreferrer" sx={{ color: 'var(--pg-accent)' }}>
+        <Link href="https://strudel.cc" target="_blank" rel="noopener noreferrer" sx={{ color: 'accent' }}>
           Strudel
         </Link>{' '}
         music patterns.
       </Typography>
 
-      <Typography variant="h6" sx={{ fontFamily: 'monospace', mt: 3, mb: 1, fontSize: '0.95rem', color: 'var(--pg-text-primary)' }}>
+      <Typography variant="h6" sx={{ fontFamily: 'monospace', mt: 3, mb: 1, fontSize: '0.95rem', color: 'textColor.primary' }}>
         License
       </Typography>
 
-      <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2, color: 'var(--pg-text-primary)' }}>
+      <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2, color: 'textColor.primary' }}>
         Shades &amp; Waves is free/open source software: you can redistribute and/or modify it
         under the terms of the{' '}
         <Link
           href="https://www.gnu.org/licenses/agpl-3.0.html"
           target="_blank"
           rel="noopener noreferrer"
-          sx={{ color: 'var(--pg-accent)' }}
+          sx={{ color: 'accent' }}
         >
           GNU Affero General Public License
         </Link>
@@ -49,20 +48,20 @@ export default function AboutPane() {
           href="https://github.com/tass-suderman/shades-and-waves"
           target="_blank"
           rel="noopener noreferrer"
-          sx={{ color: 'var(--pg-accent)' }}
+          sx={{ color: 'accent' }}
         >
           GitHub
         </Link>
         .
       </Typography>
 
-      <Typography variant="h6" sx={{ fontFamily: 'monospace', mt: 3, mb: 1, fontSize: '0.95rem', color: 'var(--pg-text-primary)' }}>
+      <Typography variant="h6" sx={{ fontFamily: 'monospace', mt: 3, mb: 1, fontSize: '0.95rem', color: 'textColor.primary' }}>
         Strudel
       </Typography>
 
-      <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2, color: 'var(--pg-text-primary)' }}>
+      <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 2, color: 'textColor.primary' }}>
         This app uses{' '}
-        <Link href="https://strudel.cc" target="_blank" rel="noopener noreferrer" sx={{ color: 'var(--pg-accent)' }}>
+        <Link href="https://strudel.cc" target="_blank" rel="noopener noreferrer" sx={{ color: 'accent' }}>
           Strudel
         </Link>{' '}
         (
@@ -70,7 +69,7 @@ export default function AboutPane() {
           href="https://codeberg.org/uzu/strudel"
           target="_blank"
           rel="noopener noreferrer"
-          sx={{ color: 'var(--pg-accent)' }}
+          sx={{ color: 'accent' }}
         >
           source
         </Link>
@@ -79,23 +78,23 @@ export default function AboutPane() {
           href="https://www.gnu.org/licenses/agpl-3.0.html"
           target="_blank"
           rel="noopener noreferrer"
-          sx={{ color: 'var(--pg-accent)' }}
+          sx={{ color: 'accent' }}
         >
           GNU AGPL
         </Link>
         .
       </Typography>
 
-      <Typography variant="h6" sx={{ fontFamily: 'monospace', mt: 3, mb: 1, fontSize: '0.95rem', color: 'var(--pg-text-primary)' }}>
+      <Typography variant="h6" sx={{ fontFamily: 'monospace', mt: 3, mb: 1, fontSize: '0.95rem', color: 'textColor.primary' }}>
         Sound Banks
       </Typography>
 
-      <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 1, color: 'var(--pg-text-primary)' }}>
+      <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 1, color: 'textColor.primary' }}>
         The built-in synthesised drum and bass sounds (TR-909 and TB-303 models, ZZFX procedural sounds)
         are original implementations and carry no additional licensing requirements.
       </Typography>
 
-      <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 1, color: 'var(--pg-text-primary)' }}>
+      <Typography variant="body2" sx={{ fontFamily: 'monospace', mb: 1, color: 'textColor.primary' }}>
         When Strudel&apos;s default sample banks load successfully they may include samples from the
         following sources. Please refer to their respective repositories for licensing details:
       </Typography>
@@ -115,8 +114,8 @@ export default function AboutPane() {
             href: 'https://github.com/tidalcycles/uzu-drumkit',
           },
         ].map(({ label, href }) => (
-          <Typography key={href} component="li" variant="body2" sx={{ fontFamily: 'monospace', color: 'var(--pg-text-primary)' }}>
-            <Link href={href} target="_blank" rel="noopener noreferrer" sx={{ color: 'var(--pg-accent)' }}>
+          <Typography key={href} component="li" variant="body2" sx={{ fontFamily: 'monospace', color: 'textColor.primary' }}>
+            <Link href={href} target="_blank" rel="noopener noreferrer" sx={{ color: 'accent' }}>
               {label}
             </Link>
           </Typography>

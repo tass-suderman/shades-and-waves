@@ -357,7 +357,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   }, [soundsSplitRatio])
 
   return (
-    <Box ref={soundsPaneRef} sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'var(--pg-bg-panel)' }}>
+    <Box ref={soundsPaneRef} sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.panel' }}>
       <EditorHeader
         title={strudelTitle}
         isPlaying={isPlaying}
@@ -412,10 +412,10 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
             onMouseDown={handleSoundsDividerMouseDown}
             sx={{
               height: '4px',
-              bgcolor: 'var(--pg-divider-default)',
+              bgcolor: 'border.faint',
               cursor: 'row-resize',
               flexShrink: 0,
-              '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
+              '&:hover': { bgcolor: 'border.faint' },
             }}
           />
           <Box sx={{ height: `${100 - soundsSplitRatio}%`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

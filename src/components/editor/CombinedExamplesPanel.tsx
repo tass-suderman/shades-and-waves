@@ -64,12 +64,13 @@ function ExampleSection({
         sx={{
           px: 2,
           py: 1,
-          color: 'var(--pg-text-muted)',
+          color: 'textColor.muted',
           fontFamily: 'monospace',
           fontSize: '0.7rem',
           textTransform: 'uppercase',
           letterSpacing: '0.08em',
-          borderBottom: '1px solid var(--pg-border-faint)',
+					borderColor: 'border.faint',
+          borderBottom: '1px solid',
         }}
       >
         {heading}
@@ -77,7 +78,7 @@ function ExampleSection({
 
       {loading && (
         <Box sx={{ px: 2, py: 1 }}>
-          <CircularProgress size={16} sx={{ color: 'var(--pg-text-muted)' }} />
+          <CircularProgress size={16} sx={{ color: 'textColor.muted'}} />
         </Box>
       )}
       {listError && (
@@ -91,7 +92,7 @@ function ExampleSection({
       {!loading && !listError && examples.length === 0 && (
         <Typography
           variant="caption"
-          sx={{ display: 'block', px: 2, py: 1, color: 'var(--pg-text-muted)', fontFamily: 'monospace' }}
+          sx={{ display: 'block', px: 2, py: 1, color: 'textColor.muted', fontFamily: 'monospace' }}
         >
           No examples found.
         </Typography>
@@ -105,14 +106,14 @@ function ExampleSection({
                 sx={{
                   px: 2,
                   py: 0.75,
-                  '&:hover': { bgcolor: 'var(--pg-bg-button)' },
+                  '&:hover': { bgcolor: 'background.button' },
                 }}
               >
                 <ListItemText
                   primary={ex.title}
                   primaryTypographyProps={{
                     sx: {
-                      color: 'var(--pg-text-primary)',
+                      color: 'textColor.primary',
                       fontFamily: 'monospace',
                       fontSize: '0.875rem',
                     },
@@ -168,7 +169,7 @@ export default function CombinedExamplesPanel({ onLoadGlsl, onLoadStrudel, embed
       sx={embedded ? {} : {
         height: '100%',
         overflow: 'auto',
-        bgcolor: 'var(--pg-bg-panel)',
+        bgcolor: 'background.panel',
       }}
     >
       {loadError && (
@@ -190,23 +191,24 @@ export default function CombinedExamplesPanel({ onLoadGlsl, onLoadStrudel, embed
         fullWidth
         PaperProps={{
           sx: {
-            bgcolor: 'var(--pg-bg-header)',
-            color: 'var(--pg-text-primary)',
-            border: '1px solid var(--pg-border-default)',
+            bgcolor: 'background.header',
+            color: 'textColor.primary',
+						borderColor: 'border.default',
+            border: '1px solid',
           },
         }}
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
-          <Typography variant="h6" sx={{ fontFamily: 'monospace', fontSize: '1rem', color: 'var(--pg-text-primary)' }}>
+          <Typography variant="h6" sx={{ fontFamily: 'monospace', fontSize: '1rem', color: 'textColor.primary' }}>
             Load example?
           </Typography>
-          <IconButton size="small" onClick={handleCancel} aria-label="Close dialog" sx={{ color: 'var(--pg-text-muted)' }}>
+          <IconButton size="small" onClick={handleCancel} aria-label="Close dialog" sx={{ color: 'textColor.muted'}}>
             <CloseIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 0 }}>
-          <Typography variant="body2" sx={{ color: 'var(--pg-text-muted)', fontFamily: 'monospace' }}>
-            Loading <strong style={{ color: 'var(--pg-accent)' }}>{pending?.meta.title}</strong> will replace
+          <Typography variant="body2" sx={{ color: 'textColor.muted', fontFamily: 'monospace' }}>
+            Loading <strong style={{ color: 'accent' }}>{pending?.meta.title}</strong> will replace
             your current {itemLabel}. Any unsaved progress will be lost.
           </Typography>
         </DialogContent>
@@ -214,7 +216,7 @@ export default function CombinedExamplesPanel({ onLoadGlsl, onLoadStrudel, embed
           <Button
             onClick={handleCancel}
             size="small"
-            sx={{ textTransform: 'none', color: 'var(--pg-text-muted)' }}
+            sx={{ textTransform: 'none', color: 'textColor.muted' }}
           >
             Cancel
           </Button>

@@ -10,8 +10,8 @@ export default function SoundsPanel() {
         flex: 1,
         overflow: 'auto',
         p: 2,
-        bgcolor: 'var(--pg-bg-panel)',
-        color: 'var(--pg-text-primary)',
+        bgcolor: 'background.panel',
+        color: 'textColor.primary',
       }}
     >
       {SOUND_CATEGORIES.map(cat => (
@@ -19,7 +19,7 @@ export default function SoundsPanel() {
           <Typography
             variant="caption"
             sx={{
-              color: 'var(--pg-text-muted)',
+              color: 'textColor.muted',
               fontFamily: 'monospace',
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
@@ -33,7 +33,7 @@ export default function SoundsPanel() {
                 key={s}
                 component="code"
                 sx={{
-                  bgcolor: 'var(--pg-bg-button)',
+                  bgcolor: 'background.button',
                   px: 0.75,
                   py: 0.25,
                   borderRadius: 0.5,
@@ -50,7 +50,7 @@ export default function SoundsPanel() {
             <Typography
               variant="caption"
               sx={{
-                color: 'var(--pg-text-muted)',
+                color: 'textColor.muted',
                 fontFamily: 'monospace',
                 display: 'block',
                 mt: 0.5,
@@ -63,7 +63,7 @@ export default function SoundsPanel() {
       ))}
       <Typography
         variant="caption"
-        sx={{ color: 'var(--pg-text-muted)', fontFamily: 'monospace', display: 'block', mt: 1 }}
+        sx={{ color: 'textColor.muted', fontFamily: 'monospace', display: 'block', mt: 1 }}
       >
         Use with <code style={{ color: '#9cdcfe' }}>.sound("name")</code> in your pattern.
       </Typography>

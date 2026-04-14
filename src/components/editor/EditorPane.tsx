@@ -218,7 +218,7 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        bgcolor: 'var(--pg-bg-panel)',
+        bgcolor: 'background.panel',
       }}
     >
       <ShaderHeader
@@ -280,10 +280,10 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
             onMouseDown={handleUniformsDividerMouseDown}
             sx={{
               height: '4px',
-              bgcolor: 'var(--pg-divider-default)',
+              bgcolor: 'border.faint',
               cursor: 'row-resize',
               flexShrink: 0,
-              '&:hover': { bgcolor: 'var(--pg-divider-hover)' },
+              '&:hover': { bgcolor: 'border.faint' },
             }}
           />
           <Box sx={{ height: `${100 - uniformsSplitRatio}%`, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>

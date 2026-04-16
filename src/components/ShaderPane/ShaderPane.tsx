@@ -1,6 +1,7 @@
 import { forwardRef, useRef, useState, useCallback, useEffect, useImperativeHandle } from 'react'
 import Box from '@mui/material/Box'
 import { useWebGL } from '../../hooks/useWebGL'
+import { useMediaStreams } from '../../hooks/useMediaStreams'
 import ShaderControls from '../ShaderControls/ShaderControls'
 
 // Download a blob via a temporary anchor element (fallback when showSaveFilePicker is unavailable)
@@ -26,15 +27,9 @@ export interface ShaderPaneHandle {
 
 interface ShaderPaneProps {
   shaderSource: string
-  webcamStream: MediaStream | null
-  audioStream: MediaStream | null
   strudelAnalyser?: AnalyserNode | null
   /** MediaStream carrying the Strudel audio output – used for recording */
   strudelAudioStream?: MediaStream | null
-  webcamEnabled: boolean
-  micEnabled: boolean
-  onToggleWebcam: () => void
-  onToggleMic: () => void
   onShaderError?: (error: string | null) => void
   /** Whether the editor panel is currently collapsed */
   editorCollapsed?: boolean
@@ -55,16 +50,10 @@ interface ShaderPaneProps {
   isImmersive?: boolean
   /** Callback to toggle immersive mode */
   onToggleImmersive?: () => void
-  /** Background opacity (0–100) used in immersive mode */
-  immersiveOpacity?: number
-  /** Callback when the immersive opacity slider changes */
-  onImmersiveOpacityChange?: (opacity: number) => void
 }
 
 export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane({
   shaderSource,
-  webcamStream,
-  audioStream,
   strudelAnalyser,
   strudelAudioStream,
   onShaderError,
@@ -85,6 +74,8 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   const [isRecording, setIsRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Blob[]>([])
+
+  const { webcamStream, audioStream } = useMediaStreams()
 
   useWebGL(canvasRef, {
     shaderSource,

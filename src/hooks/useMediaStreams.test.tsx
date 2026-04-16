@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useMediaStreams } from './useMediaStreams'
+import React from 'react'
+import { useMediaStreams, MediaStreamsProvider } from './useMediaStreams'
 
 // ---------------------------------------------------------------------------
 // Mock helpers for MediaStream and mediaDevices
@@ -21,6 +22,9 @@ function makeMockStream(tracks: MediaStreamTrack[] = []): MediaStream {
     getAudioTracks: () => tracks.filter(t => t.kind === 'audio'),
   } as unknown as MediaStream
 }
+
+const wrapper = ({ children }: { children: React.ReactNode }) =>
+  React.createElement(MediaStreamsProvider, null, children)
 
 // ---------------------------------------------------------------------------
 
@@ -50,7 +54,7 @@ describe('useMediaStreams', () => {
   })
 
   it('initialises with all streams disabled', () => {
-    const { result } = renderHook(() => useMediaStreams())
+    const { result } = renderHook(() => useMediaStreams(), { wrapper })
     expect(result.current.webcamEnabled).toBe(false)
     expect(result.current.micEnabled).toBe(false)
     expect(result.current.webcamStream).toBeNull()
@@ -63,7 +67,7 @@ describe('useMediaStreams', () => {
       const mockStream = makeMockStream([videoTrack])
       ;(navigator.mediaDevices.getUserMedia as ReturnType<typeof vi.fn>).mockResolvedValue(mockStream)
 
-      const { result } = renderHook(() => useMediaStreams())
+      const { result } = renderHook(() => useMediaStreams(), { wrapper })
       await act(() => result.current.handleToggleWebcam())
 
       expect(result.current.webcamEnabled).toBe(true)
@@ -75,7 +79,7 @@ describe('useMediaStreams', () => {
       const mockStream = makeMockStream([videoTrack])
       ;(navigator.mediaDevices.getUserMedia as ReturnType<typeof vi.fn>).mockResolvedValue(mockStream)
 
-      const { result } = renderHook(() => useMediaStreams())
+      const { result } = renderHook(() => useMediaStreams(), { wrapper })
       await act(() => result.current.handleToggleWebcam())
       await act(() => result.current.handleToggleWebcam())
 
@@ -88,7 +92,7 @@ describe('useMediaStreams', () => {
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
       ;(navigator.mediaDevices.getUserMedia as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Permission denied'))
 
-      const { result } = renderHook(() => useMediaStreams())
+      const { result } = renderHook(() => useMediaStreams(), { wrapper })
       await act(() => result.current.handleToggleWebcam())
 
       expect(result.current.webcamEnabled).toBe(false)
@@ -103,7 +107,7 @@ describe('useMediaStreams', () => {
       const mockStream = makeMockStream([audioTrack])
       ;(navigator.mediaDevices.getUserMedia as ReturnType<typeof vi.fn>).mockResolvedValue(mockStream)
 
-      const { result } = renderHook(() => useMediaStreams())
+      const { result } = renderHook(() => useMediaStreams(), { wrapper })
       await act(() => result.current.handleToggleMic())
 
       expect(result.current.micEnabled).toBe(true)
@@ -115,46 +119,11 @@ describe('useMediaStreams', () => {
       const mockStream = makeMockStream([audioTrack])
       ;(navigator.mediaDevices.getUserMedia as ReturnType<typeof vi.fn>).mockResolvedValue(mockStream)
 
-      const { result } = renderHook(() => useMediaStreams())
+      const { result } = renderHook(() => useMediaStreams(), { wrapper })
       await act(() => result.current.handleToggleMic())
       await act(() => result.current.handleToggleMic())
 
       expect(result.current.micEnabled).toBe(false)
-      expect(result.current.audioStream).toBeNull()
-    })
-  })
-
-  describe('system audio', () => {
-    it('enables system audio when a display stream with audio is shared', async () => {
-      const audioTrack = makeMockTrack('audio')
-      const videoTrack = makeMockTrack('video')
-      const displayStream = makeMockStream([videoTrack, audioTrack])
-      ;(navigator.mediaDevices.getDisplayMedia as ReturnType<typeof vi.fn>).mockResolvedValue(displayStream)
-
-
-      // Video track should NOT be stopped – it keeps the audio capture session alive
-      expect(videoTrack.stop).not.toHaveBeenCalled()
-    })
-
-    it('does not enable system audio when no audio track is shared', async () => {
-      const videoTrack = makeMockTrack('video')
-      const displayStream = makeMockStream([videoTrack])
-      const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-      ;(navigator.mediaDevices.getDisplayMedia as ReturnType<typeof vi.fn>).mockResolvedValue(displayStream)
-
-
-      expect(consoleWarn).toHaveBeenCalledWith(expect.stringMatching(/no system audio/i))
-      consoleWarn.mockRestore()
-    })
-
-    it('disables system audio when toggled off', async () => {
-      const audioTrack = makeMockTrack('audio')
-      const videoTrack = makeMockTrack('video')
-      const displayStream = makeMockStream([videoTrack, audioTrack])
-      ;(navigator.mediaDevices.getDisplayMedia as ReturnType<typeof vi.fn>).mockResolvedValue(displayStream)
-
-      const { result } = renderHook(() => useMediaStreams())
-
       expect(result.current.audioStream).toBeNull()
     })
   })

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, createContext, useContext } from 'react'
 
 export interface UseMediaStreamsReturn {
   webcamEnabled: boolean
@@ -9,7 +9,9 @@ export interface UseMediaStreamsReturn {
   handleToggleMic: () => Promise<void>
 }
 
-export function useMediaStreams(): UseMediaStreamsReturn {
+const MediaStreamsContext = createContext<UseMediaStreamsReturn | null>(null)
+
+export function MediaStreamsProvider({ children }: { children: React.ReactNode }) {
   const [webcamEnabled, setWebcamEnabled] = useState(false)
   const [micEnabled, setMicEnabled] = useState(false)
   const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null)
@@ -80,13 +82,20 @@ export function useMediaStreams(): UseMediaStreamsReturn {
     }
   }, [micEnabled, audioStream, stopAudio])
 
-  return {
-    webcamEnabled,
-    micEnabled,
-    webcamStream,
-    audioStream,
-    handleToggleWebcam,
-    handleToggleMic,
-  }
+  return (
+    <MediaStreamsContext.Provider value={{
+      webcamEnabled, micEnabled, webcamStream, audioStream,
+      handleToggleWebcam, handleToggleMic,
+    }}>
+      {children}
+    </MediaStreamsContext.Provider>
+  )
 }
 
+export function useMediaStreams(): UseMediaStreamsReturn {
+  const context = useContext(MediaStreamsContext)
+  if (!context) {
+    throw new Error('useMediaStreams must be used within a MediaStreamsProvider')
+  }
+  return context
+}

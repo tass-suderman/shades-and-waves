@@ -100,13 +100,7 @@ const FAKE_VIDEO_TRACK = { kind: 'video' } as MediaStreamTrack
 
 const DEFAULT_PROPS = {
   shaderSource: 'void main() {}',
-  webcamStream: null,
-  audioStream: null,
-  strudelAudioStream: null,
-  webcamEnabled: false,
-  micEnabled: false,
-  onToggleWebcam: vi.fn(),
-  onToggleMic: vi.fn(),
+  strudelAudioStream: null as MediaStream | null,
 }
 
 // ---------------------------------------------------------------------------
@@ -125,6 +119,7 @@ beforeEach(() => {
   })
   mockUseMediaStreams.mockReturnValue({
     webcamEnabled: false, micEnabled: false,
+    webcamStream: null, audioStream: null,
     handleToggleWebcam: vi.fn(), handleToggleMic: vi.fn(),
   })
   mockUseStrudelAnalyzer.mockReturnValue({ analyzer: null })
@@ -268,8 +263,15 @@ describe('ShaderPane – record button', () => {
     const audioTrack = { kind: 'audio', id: 'mic-track' } as MediaStreamTrack
     const micStream = makeMockMediaStream({ audioTracks: [audioTrack] })
 
+    // Provide audioStream via context mock
+    mockUseMediaStreams.mockReturnValue({
+      webcamEnabled: false, micEnabled: false,
+      webcamStream: null, audioStream: micStream,
+      handleToggleWebcam: vi.fn(), handleToggleMic: vi.fn(),
+    })
+
     const user = userEvent.setup()
-    render(<ShaderPane {...DEFAULT_PROPS} audioStream={micStream} />)
+    render(<ShaderPane {...DEFAULT_PROPS} />)
     await user.click(screen.getByRole('button', { name: /start recording/i }))
 
     expect(lastNewMediaStreamTracks).toContain(audioTrack)

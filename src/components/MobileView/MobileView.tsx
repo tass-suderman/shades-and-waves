@@ -1,7 +1,6 @@
 import { Box, Collapse, SxProps } from "@mui/material"
 import ShaderPane, { type ShaderPaneHandle } from '../ShaderPane/ShaderPane'
 import { useCallback, useEffect, useState } from "react"
-import { useMediaStreams } from "../../hooks/useMediaStreams"
 import { useAppStorage } from "../../hooks/useAppStorage"
 import { useStrudelAnalyzer } from '../../hooks/useStrudelAnalyzer'
 import { useStrudelAudioStream } from '../../hooks/useStrudelAudioStream'
@@ -43,15 +42,6 @@ export const MobileView = ({
     },
   }
 	
-  const {
-    webcamEnabled,
-    micEnabled,
-    webcamStream,
-    audioStream,
-    handleToggleWebcam,
-    handleToggleMic,
-  } = useMediaStreams()
-
 	const { immersiveOpacity } = useAppStorage()
 	const { analyzer: strudelAnalyser } = useStrudelAnalyzer()
 	const { strudelAudioStream } = useStrudelAudioStream()
@@ -91,14 +81,8 @@ export const MobileView = ({
 				<ShaderPane
 					ref={shaderRef}
 					shaderSource={shaderSource}
-					webcamStream={webcamStream}
-					audioStream={audioStream}
 					strudelAnalyser={strudelAnalyser}
 					strudelAudioStream={strudelAudioStream}
-					webcamEnabled={webcamEnabled}
-					micEnabled={micEnabled}
-					onToggleWebcam={handleToggleWebcam}
-					onToggleMic={handleToggleMic}
 					onShaderError={setShaderError}
 					editorCollapsed={editorCollapsed}
 					onToggleEditorCollapsed={() => setEditorCollapsed(!editorCollapsed)}

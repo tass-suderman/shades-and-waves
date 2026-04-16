@@ -5,6 +5,7 @@ import { type StrudelPaneHandle } from '../StrudelPane/StrudelPane'
 import { useTheme } from '../../hooks/useTheme'
 import { StrudelAnalyzerProvider } from '../../hooks/useStrudelAnalyzer'
 import { StrudelAudioStreamProvider } from '../../hooks/useStrudelAudioStream'
+import { MediaStreamsProvider } from '../../hooks/useMediaStreams'
 import { ViewReducer } from '../ViewReducer/ViewReducer'
 
 export default function App() {
@@ -43,6 +44,7 @@ export default function App() {
 
   return (
 		<ThemeProvider theme={muiTheme}>
+			<MediaStreamsProvider>
 			<StrudelAnalyzerProvider>
 			<StrudelAudioStreamProvider>
 			<GlobalStyles styles={{
@@ -57,6 +59,7 @@ export default function App() {
 				/>
 			</StrudelAudioStreamProvider>
 			</StrudelAnalyzerProvider>
+			</MediaStreamsProvider>
 		</ThemeProvider>
   )
 }

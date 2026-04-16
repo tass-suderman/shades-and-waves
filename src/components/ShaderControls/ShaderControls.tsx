@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import {
 	Box,
-  Button,
+  IconButton,
   Popover,
   Slider,
   Tooltip,
@@ -100,21 +100,21 @@ export default function ShaderControls({
       }}
     >
       <Tooltip title={isPlaying ? 'Pause' : 'Play'}>
-        <Button onClick={onTogglePlay} size="small" sx={{ color: 'white' }}>
+        <IconButton onClick={onTogglePlay} size="small" sx={{ color: 'white' }}>
           {isPlaying ? <Pause /> : <PlayArrow />}
-        </Button>
+        </IconButton>
       </Tooltip>
 
       <Tooltip title={webcamEnabled ? 'Disable Webcam (iChannel0)' : 'Enable Webcam (iChannel0)'}>
-        <Button onClick={handleToggleWebcam} size="small" sx={{ color: webcamEnabled ? 'primary.main' : 'white' }}>
+        <IconButton onClick={handleToggleWebcam} size="small" sx={{ color: webcamEnabled ? 'primary.main' : 'white' }}>
           {webcamEnabled ? <Videocam /> : <VideocamOff />}
-        </Button>
+        </IconButton>
       </Tooltip>
 
       <Tooltip title={micEnabled ? 'Disable Microphone (iChannel1)' : 'Enable Microphone (iChannel1)'}>
-        <Button onClick={handleToggleMic} size="small" sx={{ color: micEnabled ? 'primary.main' : 'white' }}>
+        <IconButton onClick={handleToggleMic} size="small" sx={{ color: micEnabled ? 'primary.main' : 'white' }}>
           {micEnabled ? <Mic /> : <MicOff />}
-        </Button>
+        </IconButton>
       </Tooltip>
 
       <ChannelStatusChips />
@@ -122,9 +122,9 @@ export default function ShaderControls({
       <Box sx={{ flex: 1 }} />
 
       <Tooltip title={muted ? 'Unmute' : 'Mute'}>
-        <Button onClick={() => setMuted(!muted)} size="small" aria-label={muted ? 'Unmute' : 'Mute'} sx={{ color: 'white' }}>
+        <IconButton onClick={() => setMuted(!muted)} size="small" aria-label={muted ? 'Unmute' : 'Mute'} sx={{ color: 'white' }}>
           <Volume />
-        </Button>
+        </IconButton>
       </Tooltip>
 
       <Slider
@@ -143,20 +143,20 @@ export default function ShaderControls({
       />
 
       <Tooltip title={isRecording ? 'Stop recording' : 'Start recording'}>
-        <Button
+        <IconButton
           onClick={isRecording ? onStopRecording : onStartRecording}
           size="small"
           aria-label={isRecording ? 'Stop recording' : 'Start recording'}
           sx={{ color: isRecording ? 'error.main' : 'white' }}
         >
           {isRecording ? <StopCircle /> : <FiberManualRecord />}
-        </Button>
+        </IconButton>
       </Tooltip>
 
       {onToggleImmersive !== undefined && (
         <>
           <Tooltip title={isImmersive ? 'Exit immersive mode' : 'Immersive mode'}>
-            <Button
+            <IconButton
               ref={previewBtnRef}
               onClick={handlePreviewClick}
               size="small"
@@ -164,7 +164,7 @@ export default function ShaderControls({
               sx={{ color: isImmersive ? 'primary.light' : 'white' }}
             >
               <Preview />
-            </Button>
+            </IconButton>
           </Tooltip>
 
           {isImmersive && (
@@ -222,14 +222,14 @@ export default function ShaderControls({
       )}
 
       <Tooltip title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}>
-        <Button onClick={onToggleFullscreen} size="small" sx={{ color: 'white' }}>
+        <IconButton onClick={onToggleFullscreen} size="small" sx={{ color: 'white' }}>
           {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
-        </Button>
+        </IconButton>
       </Tooltip>
 
       {onToggleEditorCollapsed !== undefined && (
         <Tooltip title={editorCollapsed ? 'Expand Editor' : 'Collapse Editor'}>
-          <Button
+          <IconButton
             onClick={onToggleEditorCollapsed}
             size="small"
             aria-label={editorCollapsed ? 'Expand Editor' : 'Collapse Editor'}
@@ -239,7 +239,7 @@ export default function ShaderControls({
               ? (editorCollapsed ? <ExpandMore /> : <ExpandLess />)
               : (editorCollapsed ? <ChevronLeft /> : <ChevronRight />)
             }
-          </Button>
+          </IconButton>
         </Tooltip>
       )}
     </Box>

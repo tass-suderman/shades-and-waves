@@ -33,6 +33,12 @@ export const MobileView = ({
     minHeight: 0,
     display: !editorCollapsed ? 'flex' : undefined,
     flexDirection: 'column',
+    '& .MuiCollapse-wrapper, & .MuiCollapse-wrapperInner': {
+      display: 'flex',
+      flexDirection: 'column',
+      flex: 1,
+      minHeight: 0,
+    },
   }
 	
   const {

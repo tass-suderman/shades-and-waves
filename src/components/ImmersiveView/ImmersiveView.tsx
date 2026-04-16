@@ -1,4 +1,5 @@
-import { Box } from '@mui/material'
+import { Box, ThemeProvider, createTheme, alpha, useTheme as useMuiTheme } from '@mui/material'
+import { useMemo } from 'react'
 import ShaderPane from '../ShaderPane/ShaderPane'
 import ShaderControls from '../ShaderControls/ShaderControls'
 import { type ShaderPaneHandle } from '../ShaderPane/ShaderPane'
@@ -44,6 +45,28 @@ export const ImmersiveView = ({
 		immersiveOpacity,
 	} = useAppStorage()
 
+  const baseTheme = useMuiTheme()
+
+  // Build a theme variant with alpha-blended backgrounds so every component
+  // inside the overlay respects the immersive opacity slider automatically.
+  const immersiveTheme = useMemo(() => {
+    const a = immersiveOpacity / 100
+    const bg = baseTheme.palette.background
+    return createTheme(baseTheme, {
+      palette: {
+        background: {
+          app:      alpha(bg.app,      a),
+          panel:    alpha(bg.panel,    a),
+          header:   alpha(bg.header,   a),
+          button:   alpha(bg.button,   a),
+          card:     alpha(bg.card,     a),
+          disabled: alpha(bg.disabled, a),
+          hover:    alpha(bg.hover,    a),
+        },
+      },
+    })
+  }, [baseTheme, immersiveOpacity])
+
   useEffect(() => {
 		document.documentElement.dataset.immersive = 'true'
 		document.documentElement.style.setProperty('--pg-immersive-alpha', `${immersiveOpacity}%`)
@@ -76,11 +99,13 @@ export const ImmersiveView = ({
 
 			{/* Layer 1 – Editor overlay + controls bar stacked in one flex column */}
 			<Box sx={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column' }}>
-				{/* Editor area – flex:1 so it fills space above the controls bar */}
-				<Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-					{tabBar}
-					{editorContent}
-				</Box>
+				{/* Editor area – wrapped in immersive theme so backgrounds become semi-transparent */}
+				<ThemeProvider theme={immersiveTheme}>
+					<Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+						{tabBar}
+						{editorContent}
+					</Box>
+				</ThemeProvider>
 
 				{/* Controls bar sits at the bottom and takes its natural height */}
 				<ShaderControls

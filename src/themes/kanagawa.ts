@@ -10,7 +10,7 @@ const kanagawaTheme: ThemeOptions = {
 			button: '#363646',
 			card: '#080F1D',
 			disabled: '#2A2A3767',
-			hover: '#A4B9EF',
+			hover: '#7AA89F',
 		},
 		textColor: {
 			primary: '#FFFFFF',
@@ -28,7 +28,7 @@ const kanagawaTheme: ThemeOptions = {
 			hover: '#7AA89F',
 			disabled: '#565575',
 		},
-		accent: '#A4B9EF',
+		accent: '#7AA89F',
 	},
 };
 

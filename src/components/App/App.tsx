@@ -7,6 +7,7 @@ import { MediaStreamsProvider } from '../../hooks/useMediaStreams'
 import { StrudelAnalyzerProvider } from '../../hooks/useStrudelAnalyzer'
 import { StrudelAudioStreamProvider } from '../../hooks/useStrudelAudioStream'
 import { ViewReducer } from '../ViewReducer/ViewReducer'
+import { SavedContentProvider } from '../../hooks/useSavedContent'
 
 export default function App() {
   const strudelRef = useRef<StrudelPaneHandle>(null)
@@ -47,9 +48,10 @@ export default function App() {
 			<StrudelAnalyzerProvider>
 			<StrudelAudioStreamProvider>
 			<MediaStreamsProvider>
+			<SavedContentProvider>
 			<GlobalStyles styles={{
 				'.MuiTypography-root': {
-					color: muiTheme.palette.textColor.primary,
+					color: 'textColor.primary',
 				},
 			}} />
 				<ViewReducer
@@ -57,6 +59,7 @@ export default function App() {
 					shaderRef={shaderRef}
 					changeTheme={changeTheme}
 				/>
+				</SavedContentProvider>
 				</MediaStreamsProvider>
 			</StrudelAudioStreamProvider>
 			</StrudelAnalyzerProvider>

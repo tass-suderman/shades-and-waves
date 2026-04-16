@@ -226,7 +226,7 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
         onTitleChange={handleTitleChange}
         onImport={handleImportClick}
         onExport={handleExport}
-        onSave={onSave ? handleSave : undefined}
+        onSave={onSave}
         onRun={handleRun}
         titleAriaLabel="Shader title"
         importAriaLabel="Import shader from file"

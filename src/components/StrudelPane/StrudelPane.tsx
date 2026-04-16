@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
 import { StrudelMirror } from '@strudel/codemirror'
 import { evalScope } from '@strudel/core'
@@ -8,7 +8,8 @@ import EditorHeader from '../EditorHeader/EditorHeader'
 import StrudelError from '../StrudelError/StrudelError'
 import SoundsPanel from '../SoundsPanel/SoundsPanel'
 import { registerInstruments } from '../../utility/strudel/instruments'
-import { saveStrudelCode, saveStrudelTitle, getInitialStrudelCode, getInitialStrudelTitle } from '../../hooks/useAppStorage'
+import { saveStrudelCode, saveStrudelTitle, getInitialStrudelCode, getInitialStrudelTitle, useAppStorage } from '../../hooks/useAppStorage'
+import { useTheme } from '../../hooks/useTheme'
 // @strudel/codemirror ships no TypeScript declarations; augment the methods we use
 type StrudelMirrorExt = StrudelMirror & {
   changeSetting: (key: string, value: unknown) => void
@@ -64,18 +65,16 @@ export interface StrudelPaneHandle {
 interface StrudelPaneProps {
   onAnalyserReady: (analyser: AnalyserNode | null) => void
   onAudioStreamReady?: (stream: MediaStream | null) => void
-  vimMode?: boolean
-  themeName?: string
-  volume?: number
-  muted?: boolean
-  fontSize?: number
-  onSave?: (title: string, content: string) => void
+  onSave: (title: string, content: string) => void
 }
 
 const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function StrudelPane(
-  { onAnalyserReady, onAudioStreamReady, vimMode = false, themeName = 'kanagawa', volume = 50, muted = false, fontSize = 13, onSave },
+  { onAnalyserReady, onAudioStreamReady, onSave },
   ref,
 ) {
+	const { vimMode, muted, volume, fontSize } = useAppStorage()
+	const { currentTheme } = useTheme()
+	const themeName = useMemo(() => currentTheme.name, [currentTheme])
   const rootRef = useRef<HTMLDivElement>(null)
   const mirrorRef = useRef<StrudelMirrorExt | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)

@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { createContext, useCallback, useContext } from 'react'
 import { useLocalStorage } from './useLocalStorage'
 
 // ---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ export function getSavedPatterns(): SavedEntry[] {
 // Hook
 // ---------------------------------------------------------------------------
 
-export interface SavedContentStorage {
+export interface SavedContentStorageReturn {
   savedShaders: SavedEntry[]
   savedPatterns: SavedEntry[]
   saveShader: (title: string, content: string) => void
@@ -56,7 +56,9 @@ export interface SavedContentStorage {
   clearAll: () => void
 }
 
-export function useSavedContent(): SavedContentStorage {
+const SavedContentContext = createContext<SavedContentStorageReturn | null>(null)
+
+export const SavedContentProvider = ({children}: {children: React.ReactNode}) => {
   const [savedShaders, setSavedShaders] = useLocalStorage<SavedEntry[]>(SAVED_KEYS.savedShaders, [])
   const [savedPatterns, setSavedPatterns] = useLocalStorage<SavedEntry[]>(SAVED_KEYS.savedPatterns, [])
 
@@ -84,7 +86,8 @@ export function useSavedContent(): SavedContentStorage {
     setSavedPatterns([])
   }, [setSavedShaders, setSavedPatterns])
 
-  return {
+  return (
+		<SavedContentContext.Provider value={{
     savedShaders,
     savedPatterns,
     saveShader,
@@ -94,5 +97,16 @@ export function useSavedContent(): SavedContentStorage {
     hasExistingShader,
     hasExistingPattern,
     clearAll,
-  }
+		}}>
+			{children}
+		</SavedContentContext.Provider>
+	)
+}
+
+export function useSavedContent(): SavedContentStorageReturn {
+	const context = useContext(SavedContentContext)
+	if (!context) {
+		throw new Error('useSavedContent must be used within a SavedContentProvider')
+	}
+	return context
 }

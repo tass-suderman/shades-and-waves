@@ -12,7 +12,7 @@ export interface EditorHeaderProps {
   onTitleChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onImport: () => void
   onExport: () => void
-  onSave?: () => void
+  onSave: () => void
   onRun: () => void
   titleAriaLabel?: string
   importAriaLabel?: string

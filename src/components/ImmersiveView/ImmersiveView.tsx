@@ -6,6 +6,8 @@ import { type ShaderPaneHandle } from '../ShaderPane/ShaderPane'
 import { useEffect, useState } from 'react'
 import { useMediaStreams } from '../../hooks/useMediaStreams'
 import { useAppStorage } from '../../hooks/useAppStorage'
+import { useStrudelAnalyzer } from '../../hooks/useStrudelAnalyzer'
+import { useStrudelAudioStream } from '../../hooks/useStrudelAudioStream'
 
 export interface ImmersiveViewProps {
 	outerContainerRef: React.RefObject<HTMLDivElement>
@@ -44,6 +46,9 @@ export const ImmersiveView = ({
 	const {
 		immersiveOpacity,
 	} = useAppStorage()
+
+	const { analyzer: strudelAnalyser } = useStrudelAnalyzer()
+	const { strudelAudioStream } = useStrudelAudioStream()
 
   const baseTheme = useMuiTheme()
 
@@ -84,6 +89,8 @@ export const ImmersiveView = ({
 					shaderSource={shaderSource}
 					webcamStream={webcamStream}
 					audioStream={audioStream}
+					strudelAnalyser={strudelAnalyser}
+					strudelAudioStream={strudelAudioStream}
 					webcamEnabled={webcamEnabled}
 					micEnabled={micEnabled}
 					onToggleWebcam={handleToggleWebcam}

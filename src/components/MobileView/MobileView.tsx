@@ -3,6 +3,8 @@ import ShaderPane, { type ShaderPaneHandle } from '../ShaderPane/ShaderPane'
 import { useCallback, useEffect, useState } from "react"
 import { useMediaStreams } from "../../hooks/useMediaStreams"
 import { useAppStorage } from "../../hooks/useAppStorage"
+import { useStrudelAnalyzer } from '../../hooks/useStrudelAnalyzer'
+import { useStrudelAudioStream } from '../../hooks/useStrudelAudioStream'
 
 interface MobileViewProps {
 	outerContainerRef: React.RefObject<HTMLDivElement>
@@ -51,6 +53,8 @@ export const MobileView = ({
   } = useMediaStreams()
 
 	const { immersiveOpacity } = useAppStorage()
+	const { analyzer: strudelAnalyser } = useStrudelAnalyzer()
+	const { strudelAudioStream } = useStrudelAudioStream()
 
   useEffect(() => {
       delete document.documentElement.dataset.immersive
@@ -89,6 +93,8 @@ export const MobileView = ({
 					shaderSource={shaderSource}
 					webcamStream={webcamStream}
 					audioStream={audioStream}
+					strudelAnalyser={strudelAnalyser}
+					strudelAudioStream={strudelAudioStream}
 					webcamEnabled={webcamEnabled}
 					micEnabled={micEnabled}
 					onToggleWebcam={handleToggleWebcam}

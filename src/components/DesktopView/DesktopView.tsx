@@ -3,6 +3,8 @@ import ShaderPane, { type ShaderPaneHandle } from '../ShaderPane/ShaderPane';
 import { useCallback, useEffect, useState } from 'react';
 import { useMediaStreams } from '../../hooks/useMediaStreams';
 import { useAppStorage } from '../../hooks/useAppStorage';
+import { useStrudelAnalyzer } from '../../hooks/useStrudelAnalyzer';
+import { useStrudelAudioStream } from '../../hooks/useStrudelAudioStream';
 
 interface DesktopViewProps {
 	outerContainerRef: React.RefObject<HTMLDivElement>
@@ -39,6 +41,9 @@ export const DesktopView = ({
 	const {
 		immersiveOpacity,
 	} = useAppStorage()
+
+	const { analyzer: strudelAnalyser } = useStrudelAnalyzer()
+	const { strudelAudioStream } = useStrudelAudioStream()
 
   const [leftRatio, setLeftRatio] = useState(50)
 
@@ -89,6 +94,8 @@ export const DesktopView = ({
 					shaderSource={shaderSource}
 					webcamStream={webcamStream}
 					audioStream={audioStream}
+					strudelAnalyser={strudelAnalyser}
+					strudelAudioStream={strudelAudioStream}
 					webcamEnabled={webcamEnabled}
 					micEnabled={micEnabled}
 					onToggleWebcam={handleToggleWebcam}

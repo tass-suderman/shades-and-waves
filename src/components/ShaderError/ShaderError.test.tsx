@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import ShaderError from './ShaderError'
 
 describe('ShaderError', () => {
@@ -27,5 +28,21 @@ describe('ShaderError', () => {
   it('renders a dismiss button with accessible label when an error is shown', () => {
     render(<ShaderError error="ERROR: something went wrong" />)
     expect(screen.getByRole('button', { name: /dismiss error/i })).toBeInTheDocument()
+  })
+
+  it('hides the error panel when the dismiss button is clicked', async () => {
+    const user = userEvent.setup()
+    render(<ShaderError error="ERROR: something went wrong" />)
+    await user.click(screen.getByRole('button', { name: /dismiss error/i }))
+    expect(screen.queryByText(/something went wrong/i)).not.toBeInTheDocument()
+  })
+
+  it('re-shows the error when a new error arrives after dismissal', async () => {
+    const user = userEvent.setup()
+    const { rerender } = render(<ShaderError error="first error" />)
+    await user.click(screen.getByRole('button', { name: /dismiss error/i }))
+    expect(screen.queryByText('first error')).not.toBeInTheDocument()
+    rerender(<ShaderError error="second error" />)
+    expect(screen.getByText('second error')).toBeInTheDocument()
   })
 })

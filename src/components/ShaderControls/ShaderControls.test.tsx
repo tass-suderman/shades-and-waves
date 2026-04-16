@@ -124,4 +124,48 @@ describe('ShaderControls', () => {
     render(<ShaderControls {...DEFAULT_PROPS} onToggleImmersive={vi.fn()} />)
     expect(screen.getByRole('button', { name: /immersive mode/i })).toBeInTheDocument()
   })
+
+  it('shows Fullscreen icon when not in fullscreen', () => {
+    render(<ShaderControls {...DEFAULT_PROPS} isFullscreen={false} />)
+    expect(screen.getByTestId('FullscreenIcon')).toBeInTheDocument()
+  })
+
+  it('shows FullscreenExit icon when in fullscreen', () => {
+    render(<ShaderControls {...DEFAULT_PROPS} isFullscreen={true} />)
+    expect(screen.getByTestId('FullscreenExitIcon')).toBeInTheDocument()
+  })
+
+  it('calls onToggleFullscreen when fullscreen button is clicked', async () => {
+    const onToggleFullscreen = vi.fn()
+    const user = userEvent.setup()
+    render(<ShaderControls {...DEFAULT_PROPS} isFullscreen={false} onToggleFullscreen={onToggleFullscreen} />)
+    await user.click(screen.getByTestId('FullscreenIcon').closest('button')!)
+    expect(onToggleFullscreen).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls handleToggleWebcam when webcam button is clicked', async () => {
+    const handleToggleWebcam = vi.fn()
+    mockUseMediaStreams.mockReturnValue({ ...DEFAULT_MEDIA_STREAMS, handleToggleWebcam })
+    const user = userEvent.setup()
+    render(<ShaderControls {...DEFAULT_PROPS} />)
+    await user.click(screen.getByTestId('VideocamOffIcon').closest('button')!)
+    expect(handleToggleWebcam).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls handleToggleMic when mic button is clicked', async () => {
+    const handleToggleMic = vi.fn()
+    mockUseMediaStreams.mockReturnValue({ ...DEFAULT_MEDIA_STREAMS, handleToggleMic })
+    const user = userEvent.setup()
+    render(<ShaderControls {...DEFAULT_PROPS} />)
+    await user.click(screen.getByTestId('MicOffIcon').closest('button')!)
+    expect(handleToggleMic).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders channel chips when webcam and strudel are active', () => {
+    mockUseMediaStreams.mockReturnValue({ ...DEFAULT_MEDIA_STREAMS, webcamEnabled: true })
+    mockUseStrudelAnalyzer.mockReturnValue({ analyzer: {} as AnalyserNode })
+    render(<ShaderControls {...DEFAULT_PROPS} />)
+    expect(screen.getByText('iChannel0: Webcam')).toBeInTheDocument()
+    expect(screen.getByText('iChannel2: Strudel')).toBeInTheDocument()
+  })
 })

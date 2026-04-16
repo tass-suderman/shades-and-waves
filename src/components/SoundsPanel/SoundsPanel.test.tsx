@@ -28,4 +28,9 @@ describe('SoundsPanel', () => {
     render(<SoundsPanel />)
     expect(screen.getByText(/\.sound\("name"\)/)).toBeInTheDocument()
   })
+
+  it('renders aliases for oscillator waveforms', () => {
+    render(<SoundsPanel />)
+    expect(screen.getByText(/sin → sine/)).toBeInTheDocument()
+  })
 })

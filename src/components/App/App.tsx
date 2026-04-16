@@ -3,6 +3,7 @@ import { GlobalStyles, ThemeProvider } from '@mui/material'
 import { type ShaderPaneHandle } from '../ShaderPane/ShaderPane'
 import { type StrudelPaneHandle } from '../StrudelPane/StrudelPane'
 import { useTheme } from '../../hooks/useTheme'
+import { MediaStreamsProvider } from '../../hooks/useMediaStreams'
 import { StrudelAnalyzerProvider } from '../../hooks/useStrudelAnalyzer'
 import { StrudelAudioStreamProvider } from '../../hooks/useStrudelAudioStream'
 import { ViewReducer } from '../ViewReducer/ViewReducer'
@@ -45,6 +46,7 @@ export default function App() {
 		<ThemeProvider theme={muiTheme}>
 			<StrudelAnalyzerProvider>
 			<StrudelAudioStreamProvider>
+			<MediaStreamsProvider>
 			<GlobalStyles styles={{
 				'.MuiTypography-root': {
 					color: muiTheme.palette.textColor.primary,
@@ -55,6 +57,7 @@ export default function App() {
 					shaderRef={shaderRef}
 					changeTheme={changeTheme}
 				/>
+				</MediaStreamsProvider>
 			</StrudelAudioStreamProvider>
 			</StrudelAnalyzerProvider>
 		</ThemeProvider>

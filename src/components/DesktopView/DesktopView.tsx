@@ -1,7 +1,6 @@
 import { Box, Collapse, SxProps, Theme } from '@mui/material';
 import ShaderPane, { type ShaderPaneHandle } from '../ShaderPane/ShaderPane';
 import { useCallback, useEffect, useState } from 'react';
-import { useMediaStreams } from '../../hooks/useMediaStreams';
 import { useAppStorage } from '../../hooks/useAppStorage';
 
 interface DesktopViewProps {
@@ -27,14 +26,6 @@ export const DesktopView = ({
 	editorCollapsed,
 	setEditorCollapsed,
 }: DesktopViewProps) => {
-  const {
-    webcamEnabled,
-    micEnabled,
-    webcamStream,
-    audioStream,
-    handleToggleWebcam,
-    handleToggleMic,
-  } = useMediaStreams()
 
 	const {
 		immersiveOpacity,
@@ -87,12 +78,6 @@ export const DesktopView = ({
 				<ShaderPane
 					ref={shaderRef}
 					shaderSource={shaderSource}
-					webcamStream={webcamStream}
-					audioStream={audioStream}
-					webcamEnabled={webcamEnabled}
-					micEnabled={micEnabled}
-					onToggleWebcam={handleToggleWebcam}
-					onToggleMic={handleToggleMic}
 					onShaderError={setShaderError}
 					editorCollapsed={editorCollapsed}
 					onToggleEditorCollapsed={() => setEditorCollapsed(!editorCollapsed)}

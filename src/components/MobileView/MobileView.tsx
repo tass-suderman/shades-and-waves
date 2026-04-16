@@ -1,7 +1,6 @@
 import { Box, Collapse, SxProps } from "@mui/material"
 import ShaderPane, { type ShaderPaneHandle } from '../ShaderPane/ShaderPane'
 import { useCallback, useEffect, useState } from "react"
-import { useMediaStreams } from "../../hooks/useMediaStreams"
 import { useAppStorage } from "../../hooks/useAppStorage"
 
 interface MobileViewProps {
@@ -22,7 +21,6 @@ export const MobileView = ({
 	tabBar,
 	editorContent,
 	shaderSource,
-	setShaderError,
 	handleToggleImmersive,
 	editorCollapsed,
 	setEditorCollapsed,
@@ -33,17 +31,14 @@ export const MobileView = ({
     minHeight: 0,
     display: !editorCollapsed ? 'flex' : undefined,
     flexDirection: 'column',
+		'& .MuiCollapse-wrapper, & .MuiCollapse-wrapperInner': {
+      display: 'flex',
+      flexDirection: 'column',
+      flex: 1,
+      minHeight: 0,
+    },
   }
 	
-  const {
-    webcamEnabled,
-    micEnabled,
-    webcamStream,
-    audioStream,
-    handleToggleWebcam,
-    handleToggleMic,
-  } = useMediaStreams()
-
 	const { immersiveOpacity } = useAppStorage()
 
   useEffect(() => {
@@ -81,13 +76,6 @@ export const MobileView = ({
 				<ShaderPane
 					ref={shaderRef}
 					shaderSource={shaderSource}
-					webcamStream={webcamStream}
-					audioStream={audioStream}
-					webcamEnabled={webcamEnabled}
-					micEnabled={micEnabled}
-					onToggleWebcam={handleToggleWebcam}
-					onToggleMic={handleToggleMic}
-					onShaderError={setShaderError}
 					editorCollapsed={editorCollapsed}
 					onToggleEditorCollapsed={() => setEditorCollapsed(!editorCollapsed)}
 					isMobile={true}

@@ -2,6 +2,9 @@ import { forwardRef, useRef, useState, useCallback, useEffect, useImperativeHand
 import Box from '@mui/material/Box'
 import { useWebGL } from '../../hooks/useWebGL'
 import ShaderControls from '../ShaderControls/ShaderControls'
+import { useStrudelAnalyzer } from '../../hooks/useStrudelAnalyzer'
+import { useStrudelAudioStream } from '../../hooks/useStrudelAudioStream'
+import { useMediaStreams } from '../../hooks/useMediaStreams'
 
 // Download a blob via a temporary anchor element (fallback when showSaveFilePicker is unavailable)
 function downloadBlob(blob: Blob, filename: string): void {
@@ -26,15 +29,8 @@ export interface ShaderPaneHandle {
 
 interface ShaderPaneProps {
   shaderSource: string
-  webcamStream: MediaStream | null
-  audioStream: MediaStream | null
-  strudelAnalyser?: AnalyserNode | null
   /** MediaStream carrying the Strudel audio output – used for recording */
   strudelAudioStream?: MediaStream | null
-  webcamEnabled: boolean
-  micEnabled: boolean
-  onToggleWebcam: () => void
-  onToggleMic: () => void
   onShaderError?: (error: string | null) => void
   /** Whether the editor panel is currently collapsed */
   editorCollapsed?: boolean
@@ -63,10 +59,6 @@ interface ShaderPaneProps {
 
 export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane({
   shaderSource,
-  webcamStream,
-  audioStream,
-  strudelAnalyser,
-  strudelAudioStream,
   onShaderError,
   editorCollapsed,
   onToggleEditorCollapsed,
@@ -77,6 +69,7 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   onFullscreenStateChange,
   isImmersive,
   onToggleImmersive,
+	immersiveOpacity
 }: ShaderPaneProps, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -85,13 +78,16 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   const [isRecording, setIsRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Blob[]>([])
+	const { analyzer } = useStrudelAnalyzer()
+	const { strudelAudioStream } = useStrudelAudioStream()
+	const { webcamStream, audioStream } = useMediaStreams()
 
   useWebGL(canvasRef, {
     shaderSource,
     webcamStream,
     audioStream,
-    strudelAnalyser,
     isPlaying,
+		strudelAnalyser: analyzer,
     onError: onShaderError,
   })
 
@@ -221,6 +217,7 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
         flexDirection: 'column',
         height: '100%',
         bgcolor: '#000',
+				opacity: immersiveOpacity ?? '100%',
         position: 'relative',
       }}
     >

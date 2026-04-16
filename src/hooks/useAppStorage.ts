@@ -1,5 +1,5 @@
 import { useLocalStorage } from './useLocalStorage'
-import { DEFAULT_SHADER } from '../shaders/default'
+import { DEFAULT_SHADER } from '../utility/shader/defaultShader'
 
 // ---------------------------------------------------------------------------
 // Private key constants – no other file should reference these strings

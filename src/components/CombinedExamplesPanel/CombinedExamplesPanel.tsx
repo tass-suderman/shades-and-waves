@@ -107,12 +107,14 @@ function ExampleSection({
               >
                 <ListItemText
                   primary={ex.title}
-                  primaryTypographyProps={{
-                    sx: {
-                      color: 'textColor.primary',
-                      fontFamily: 'monospace',
-                      fontSize: '0.875rem',
-                    },
+                  slotProps={{
+										primary:{
+											sx: {
+												color: 'textColor.primary',
+												fontFamily: 'monospace',
+												fontSize: '0.875rem',
+											},
+										}
                   }}
                 />
                 {ex.aiGenerated && (

@@ -1,26 +1,17 @@
 import { Box, Collapse, SxProps } from "@mui/material"
 import ShaderPane, { type ShaderPaneHandle } from '../ShaderPane/ShaderPane'
 import { useCallback, useEffect, useState } from "react"
+import { useMediaStreams } from "../../hooks/useMediaStreams"
+import { useAppStorage } from "../../hooks/useAppStorage"
 
 interface MobileViewProps {
 	outerContainerRef: React.RefObject<HTMLDivElement>
 	shaderRef: React.RefObject<ShaderPaneHandle>
 	tabBar: React.ReactNode
 	editorContent: React.ReactNode
-	overwriteDialog: React.ReactNode
 	shaderSource: string
-	webcamStream: MediaStream | null
-	audioStream: MediaStream | null
-	webcamEnabled: boolean
-	micEnabled: boolean
-	handleToggleWebcam: () => void
-	handleToggleMic: () => void
-	handleVolumeChange: (value: number) => void
-	handleToggleMute: () => void
 	setShaderError: (error: string | null) => void
 	handleToggleImmersive: () => void
-	immersiveOpacity: number
-	setImmersiveOpacity: (opacity: number) => void
 	editorCollapsed: boolean
 	setEditorCollapsed: (collapsed: boolean) => void
 }
@@ -30,20 +21,9 @@ export const MobileView = ({
 	shaderRef,
 	tabBar,
 	editorContent,
-	overwriteDialog,
 	shaderSource,
-	webcamStream,
-	audioStream,
-	webcamEnabled,
-	micEnabled,
-	handleToggleWebcam,
-	handleToggleMic,
-	handleVolumeChange,
-	handleToggleMute,
 	setShaderError,
 	handleToggleImmersive,
-	immersiveOpacity,
-	setImmersiveOpacity,
 	editorCollapsed,
 	setEditorCollapsed,
 }: MobileViewProps) => {
@@ -54,6 +34,17 @@ export const MobileView = ({
     display: !editorCollapsed ? 'flex' : undefined,
     flexDirection: 'column',
   }
+	
+  const {
+    webcamEnabled,
+    micEnabled,
+    webcamStream,
+    audioStream,
+    handleToggleWebcam,
+    handleToggleMic,
+  } = useMediaStreams()
+
+	const { immersiveOpacity } = useAppStorage()
 
   useEffect(() => {
       delete document.documentElement.dataset.immersive
@@ -96,16 +87,12 @@ export const MobileView = ({
 					micEnabled={micEnabled}
 					onToggleWebcam={handleToggleWebcam}
 					onToggleMic={handleToggleMic}
-					onVolumeChange={handleVolumeChange}
-					onToggleMute={handleToggleMute}
 					onShaderError={setShaderError}
 					editorCollapsed={editorCollapsed}
 					onToggleEditorCollapsed={() => setEditorCollapsed(!editorCollapsed)}
 					isMobile={true}
 					isImmersive={false}
 					onToggleImmersive={handleToggleImmersive}
-					immersiveOpacity={immersiveOpacity}
-					onImmersiveOpacityChange={setImmersiveOpacity}
 				/>
 			</Box>
 
@@ -130,7 +117,6 @@ export const MobileView = ({
 					{editorContent}
 				</Box>
 			</Collapse>
-			{overwriteDialog}
 		</Box>
 	)
 }

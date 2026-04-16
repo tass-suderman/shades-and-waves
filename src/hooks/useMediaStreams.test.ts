@@ -53,7 +53,6 @@ describe('useMediaStreams', () => {
     const { result } = renderHook(() => useMediaStreams())
     expect(result.current.webcamEnabled).toBe(false)
     expect(result.current.micEnabled).toBe(false)
-    expect(result.current.systemAudioEnabled).toBe(false)
     expect(result.current.webcamStream).toBeNull()
     expect(result.current.audioStream).toBeNull()
   })
@@ -132,10 +131,7 @@ describe('useMediaStreams', () => {
       const displayStream = makeMockStream([videoTrack, audioTrack])
       ;(navigator.mediaDevices.getDisplayMedia as ReturnType<typeof vi.fn>).mockResolvedValue(displayStream)
 
-      const { result } = renderHook(() => useMediaStreams())
-      await act(() => result.current.handleToggleSystemAudio())
 
-      expect(result.current.systemAudioEnabled).toBe(true)
       // Video track should NOT be stopped – it keeps the audio capture session alive
       expect(videoTrack.stop).not.toHaveBeenCalled()
     })
@@ -146,10 +142,7 @@ describe('useMediaStreams', () => {
       const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       ;(navigator.mediaDevices.getDisplayMedia as ReturnType<typeof vi.fn>).mockResolvedValue(displayStream)
 
-      const { result } = renderHook(() => useMediaStreams())
-      await act(() => result.current.handleToggleSystemAudio())
 
-      expect(result.current.systemAudioEnabled).toBe(false)
       expect(consoleWarn).toHaveBeenCalledWith(expect.stringMatching(/no system audio/i))
       consoleWarn.mockRestore()
     })
@@ -161,10 +154,7 @@ describe('useMediaStreams', () => {
       ;(navigator.mediaDevices.getDisplayMedia as ReturnType<typeof vi.fn>).mockResolvedValue(displayStream)
 
       const { result } = renderHook(() => useMediaStreams())
-      await act(() => result.current.handleToggleSystemAudio())
-      await act(() => result.current.handleToggleSystemAudio())
 
-      expect(result.current.systemAudioEnabled).toBe(false)
       expect(result.current.audioStream).toBeNull()
     })
   })

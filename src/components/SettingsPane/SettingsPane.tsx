@@ -6,28 +6,24 @@ import ResetConfirmationDialog from '../ResetConfirmationDialog/ResetConfirmatio
 import SettingsDivider from '../SettingsDivider/SettingsDivider'
 import SettingsSection from '../SettingsSection/SettingsSection'
 import { shortcuts } from '../../utility/keyboardShortcuts'
+import { useTheme } from '../../hooks/useTheme'
+import { useAppStorage } from '../../hooks/useAppStorage'
 
-interface SettingsPaneProps {
-  vimMode: boolean
-  onVimModeChange: (enabled: boolean) => void
-  themeName: string
-  onThemeChange: (name: string) => void
-  fontSize: number
-  onFontSizeChange: (size: number) => void
-  warnOnOverwrite: boolean
-  onWarnOnOverwriteChange: (v: boolean) => void
-}
-
-export default function SettingsPane({ vimMode, onVimModeChange, themeName, onThemeChange, fontSize, onFontSizeChange, warnOnOverwrite, onWarnOnOverwriteChange }: SettingsPaneProps) {
+export default () => {
   const [resetDialogOpen, setResetDialogOpen] = useState(false)
 
   const handleResetConfirm = useCallback(() => {
-    // Clear all localStorage to ensure third-party persistence (e.g. Strudel's
-    // internal CodeMirror storage) is also removed along with app keys.
     localStorage.clear()
     setResetDialogOpen(false)
     window.location.reload()
   }, [])
+
+	const { changeTheme, currentTheme } = useTheme()
+	const {
+		vimMode, setVimMode,
+		fontSize, setFontSize,
+		warnOnOverwrite, setWarnOnOverwrite,
+	} = useAppStorage()
 
   return (
     <Box
@@ -63,7 +59,7 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
             control={
               <Checkbox
                 checked={vimMode}
-                onChange={(e) => onVimModeChange(e.target.checked)}
+                onChange={(e) => setVimMode(e.target.checked)}
                 size="small"
                 sx={{
                   color: 'border.default',
@@ -78,7 +74,7 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <Select
                 value={fontSize}
-                onChange={(e) => onFontSizeChange(Number(e.target.value))}
+                onChange={(e) => setFontSize(Number(e.target.value))}
                 sx={{
                   color: 'textColor.primary',
                   bgcolor: 'background.button',
@@ -122,8 +118,8 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
 				<SettingsSection title="Theme">
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <Select
-              value={themeName}
-              onChange={(e) => onThemeChange(e.target.value)}
+              value={currentTheme.name}
+              onChange={(e) => changeTheme(e.target.value)}
               sx={{
                 color: 'textColor.primary',
                 bgcolor: 'background.button',
@@ -202,7 +198,7 @@ export default function SettingsPane({ vimMode, onVimModeChange, themeName, onTh
             control={
               <Checkbox
                 checked={warnOnOverwrite}
-                onChange={(e) => onWarnOnOverwriteChange(e.target.checked)}
+                onChange={(e) => setWarnOnOverwrite(e.target.checked)}
                 size="small"
                 sx={{
                   color: 'border.default',

@@ -35,8 +35,6 @@ interface ShaderPaneProps {
   micEnabled: boolean
   onToggleWebcam: () => void
   onToggleMic: () => void
-  onVolumeChange: (value: number) => void
-  onToggleMute: () => void
   onShaderError?: (error: string | null) => void
   /** Whether the editor panel is currently collapsed */
   editorCollapsed?: boolean
@@ -69,12 +67,6 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   audioStream,
   strudelAnalyser,
   strudelAudioStream,
-  webcamEnabled,
-  micEnabled,
-  onToggleWebcam,
-  onToggleMic,
-  onVolumeChange,
-  onToggleMute,
   onShaderError,
   editorCollapsed,
   onToggleEditorCollapsed,
@@ -85,8 +77,6 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   onFullscreenStateChange,
   isImmersive,
   onToggleImmersive,
-  immersiveOpacity,
-  onImmersiveOpacityChange,
 }: ShaderPaneProps, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -120,7 +110,7 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
 
     const canvasStream = canvas.captureStream(30)
 
-    // Prefer Strudel audio; fall back to mic / system audio
+    // Prefer Strudel audio; fall back to mic
     const audioTracks =
       strudelAudioStream && strudelAudioStream.getAudioTracks().length > 0
         ? strudelAudioStream.getAudioTracks()
@@ -247,14 +237,7 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
           isPlaying={isPlaying}
           isRecording={isRecording}
           isFullscreen={isFullscreen}
-          webcamEnabled={webcamEnabled}
-          micEnabled={micEnabled}
-          strudelAnalyser={strudelAnalyser}
           onTogglePlay={() => setIsPlaying(p => !p)}
-          onToggleWebcam={onToggleWebcam}
-          onToggleMic={onToggleMic}
-          onVolumeChange={onVolumeChange}
-          onToggleMute={onToggleMute}
           onStartRecording={handleStartRecording}
           onStopRecording={handleStopRecording}
           onToggleFullscreen={handleFullscreen}
@@ -263,8 +246,6 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
           isMobile={isMobile}
           isImmersive={isImmersive}
           onToggleImmersive={onToggleImmersive}
-          immersiveOpacity={immersiveOpacity}
-          onImmersiveOpacityChange={onImmersiveOpacityChange}
         />
       )}
     </Box>

@@ -10,45 +10,32 @@ import { ViewMode } from '../../constants/tabConfigs'
 import { useSavedContent } from '../../hooks/useSavedContent'
 import { useStrudelAnalyzer } from '../../hooks/useStrudelAnalyzer'
 import { useStrudelAudioStream } from '../../hooks/useStrudelAudioStream'
+import { useAppStorage } from '../../hooks/useAppStorage'
 
 export interface EditorContentProps {
 	viewMode: ViewMode
-	vimMode: boolean
-	fontSize: number
-	warnOnOverwrite: boolean
 	initialShaderCode: string
 	shaderError: string | null
 	strudelRef: React.RefObject<StrudelPaneHandle>
-	setFontSize: (size: number) => void
-	setWarnOnOverwrite: (warn: boolean) => void
 	setShaderSource: (source: string) => void
 	setOverwritePending: (pending: { title: string, content: string, type: 'shader' | 'pattern' } | null) => void
 	setDontShowAgain: (dontShow: boolean) => void
 	setOverwriteDialogOpen: (open: boolean) => void
 	setViewMode: (mode: ViewMode) => void
-	handleVimModeChange: (enabled: boolean) => void
-	handleThemeChange: (themeName: string) => void
 	commitSave: (title: string, content: string, type: 'shader' | 'pattern') => void
 }
 
 export const EditorContent = ({
 	viewMode,
-	vimMode,
-	fontSize,
-	warnOnOverwrite,
 	initialShaderCode,
 	shaderError,
 	strudelRef,
-	handleVimModeChange,
-	handleThemeChange,
-	setFontSize,
-	setWarnOnOverwrite,
 	setShaderSource,
 	setViewMode,
 	setOverwritePending,
   setOverwriteDialogOpen,
 	setDontShowAgain,
-	commitSave,
+	commitSave
 }: EditorContentProps) => {
   const [pendingSource, setPendingSource] = useState<string>(initialShaderCode)
 
@@ -65,6 +52,12 @@ export const EditorContent = ({
     setShaderSource(code)
   }, [])
 
+	const { 
+		vimMode,
+		fontSize,
+		warnOnOverwrite,
+	} = useAppStorage()
+
 	const { setAnalyzer } = useStrudelAnalyzer();
 	const { setStrudelAudioStream } = useStrudelAudioStream()
 
@@ -74,6 +67,7 @@ export const EditorContent = ({
     editorRef.current?.loadExample(title, content)
     setViewMode('glsl')
   }, [])
+
 
   const handleLoadStrudelExample = useCallback((title: string, content: string) => {
     strudelRef.current?.loadExample(title, content)
@@ -119,16 +113,7 @@ export const EditorContent = ({
 
 				{/* Settings panel */}
 				{viewMode === 'settings' && (
-					<SettingsPane
-						vimMode={vimMode}
-						onVimModeChange={handleVimModeChange}
-						themeName={currentTheme.name}
-						onThemeChange={handleThemeChange}
-						fontSize={fontSize}
-						onFontSizeChange={setFontSize}
-						warnOnOverwrite={warnOnOverwrite}
-						onWarnOnOverwriteChange={setWarnOnOverwrite}
-					/>
+					<SettingsPane />
 				)}
 
 				{/* Saved panel (Saved Content + Examples) */}

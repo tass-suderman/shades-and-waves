@@ -2,34 +2,19 @@ import { Box } from '@mui/material'
 import ShaderPane from '../ShaderPane/ShaderPane'
 import ShaderControls from '../ShaderControls/ShaderControls'
 import { type ShaderPaneHandle } from '../ShaderPane/ShaderPane'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { useMediaStreams } from '../../hooks/useMediaStreams'
+import { useAppStorage } from '../../hooks/useAppStorage'
 
 export interface ImmersiveViewProps {
 	outerContainerRef: React.RefObject<HTMLDivElement>
 	shaderRef: React.RefObject<ShaderPaneHandle>
 	tabBar: React.ReactNode
 	editorContent: React.ReactNode
-	overwriteDialog: React.ReactNode
 	shaderSource: string
-	webcamStream: MediaStream | null
-	audioStream: MediaStream | null
-	webcamEnabled: boolean
-	micEnabled: boolean
-	handleToggleWebcam: () => void
-	handleToggleMic: () => void
-	handleVolumeChange: (value: number) => void
-	handleToggleMute: () => void
 	setShaderError: (error: string | null) => void
 	isMobile: boolean
-	immersiveShaderPlaying: boolean
-	setImmersiveShaderPlaying: (playing: boolean) => void
-	immersiveShaderRecording: boolean
-	setImmersiveShaderRecording: (recording: boolean) => void
-	immersiveShaderFullscreen: boolean
-	setImmersiveShaderFullscreen: (fullscreen: boolean) => void
 	handleToggleImmersive: () => void
-	immersiveOpacity: number
-	setImmersiveOpacity: (opacity: number) => void
 }
 
 export const ImmersiveView = ({
@@ -37,32 +22,33 @@ export const ImmersiveView = ({
 	shaderRef,
 	tabBar,
 	editorContent,
-	overwriteDialog,
 	shaderSource,
-	webcamStream,
-	audioStream,
-	webcamEnabled,
-	micEnabled,
-	handleToggleWebcam,
-	handleToggleMic,
-	handleVolumeChange,
-	handleToggleMute,
 	setShaderError,
 	isMobile,
-	immersiveShaderPlaying,
-	setImmersiveShaderPlaying,
-	immersiveShaderRecording,
-	setImmersiveShaderRecording,
-	immersiveShaderFullscreen,
-	setImmersiveShaderFullscreen,
 	handleToggleImmersive,
-	immersiveOpacity,
-	setImmersiveOpacity,
 }: ImmersiveViewProps) => {
+  const [immersiveShaderPlaying, setImmersiveShaderPlaying] = useState(true)
+  const [immersiveShaderRecording, setImmersiveShaderRecording] = useState(false)
+  const [immersiveShaderFullscreen, setImmersiveShaderFullscreen] = useState(false)
+
+  const {
+    webcamEnabled,
+    micEnabled,
+    webcamStream,
+    audioStream,
+    handleToggleWebcam,
+    handleToggleMic,
+  } = useMediaStreams()
+
+	const {
+		immersiveOpacity,
+	} = useAppStorage()
+
   useEffect(() => {
 		document.documentElement.dataset.immersive = 'true'
 		document.documentElement.style.setProperty('--pg-immersive-alpha', `${immersiveOpacity}%`)
   }, [immersiveOpacity])
+
 	return (
 		<Box
 			ref={outerContainerRef}
@@ -79,8 +65,6 @@ export const ImmersiveView = ({
 					micEnabled={micEnabled}
 					onToggleWebcam={handleToggleWebcam}
 					onToggleMic={handleToggleMic}
-					onVolumeChange={handleVolumeChange}
-					onToggleMute={handleToggleMute}
 					onShaderError={setShaderError}
 					isMobile={isMobile}
 					hideControls
@@ -103,24 +87,15 @@ export const ImmersiveView = ({
 					isPlaying={immersiveShaderPlaying}
 					isRecording={immersiveShaderRecording}
 					isFullscreen={immersiveShaderFullscreen}
-					webcamEnabled={webcamEnabled}
-					micEnabled={micEnabled}
 					onTogglePlay={() => shaderRef.current?.togglePlay()}
-					onToggleWebcam={handleToggleWebcam}
-					onToggleMic={handleToggleMic}
-					onVolumeChange={handleVolumeChange}
-					onToggleMute={handleToggleMute}
 					onStartRecording={() => shaderRef.current?.startRecording()}
 					onStopRecording={() => shaderRef.current?.stopRecording()}
 					onToggleFullscreen={() => shaderRef.current?.toggleFullscreen()}
 					isMobile={isMobile}
 					isImmersive={true}
 					onToggleImmersive={handleToggleImmersive}
-					immersiveOpacity={immersiveOpacity}
-					onImmersiveOpacityChange={setImmersiveOpacity}
 				/>
 			</Box>
-			{overwriteDialog}
 		</Box>
 	)
 }

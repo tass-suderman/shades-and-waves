@@ -24,13 +24,15 @@ export const OverwriteDialog = ({
       onClose={handleOverwriteCancel}
       maxWidth="xs"
       fullWidth
-      PaperProps={{
-        sx: {
-          bgcolor: 'background.header',
-          color: 'textColor.primary',
-          border: '1px solid',
-					borderColor: 'border.default',
-        },
+      slotProps={{
+				paper: {
+					sx: {
+						bgcolor: 'background.header',
+						color: 'textColor.primary',
+						border: '1px solid',
+						borderColor: 'border.default',
+					},
+				}
       }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>

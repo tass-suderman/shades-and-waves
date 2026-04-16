@@ -94,12 +94,14 @@ function SavedSection({
             >
               <ListItemText
                 primary={entry.title}
-                primaryTypographyProps={{
-                  sx: {
-                    color: 'textColor.primary',
-                    fontFamily: 'monospace',
-                    fontSize: '0.875rem',
-                  },
+                slotProps={{
+									primary: {
+										sx: {
+											color: 'textColor.primary',
+											fontFamily: 'monospace',
+											fontSize: '0.875rem',
+										},
+									}
                 }}
               />
             </ListItemButton>

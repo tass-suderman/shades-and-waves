@@ -1,17 +1,15 @@
 import Box from '@mui/material/Box'
 import Chip from '@mui/material/Chip'
+import { useStrudelAnalyzer } from '../../hooks/useStrudelAnalyzer'
+import { useMediaStreams } from '../../hooks/useMediaStreams';
 
-interface ChannelStatusChipsProps {
-  webcamEnabled: boolean
-  micEnabled: boolean
-  strudelAnalyser?: AnalyserNode | null
-}
+export default () => {
+	const { analyzer } = useStrudelAnalyzer();
+	const { 
+		webcamEnabled,
+		micEnabled,
+	} = useMediaStreams()
 
-export default function ChannelStatusChips({
-  webcamEnabled,
-  micEnabled,
-  strudelAnalyser,
-}: ChannelStatusChipsProps) {
   return (
     <Box sx={{ display: 'contents' }}>
       {webcamEnabled && (
@@ -32,7 +30,7 @@ export default function ChannelStatusChips({
           sx={{ fontSize: '0.65rem' }}
         />
       )}
-      {strudelAnalyser && (
+      {analyzer && (
         <Chip
           label="iChannel2: Strudel"
           size="small"

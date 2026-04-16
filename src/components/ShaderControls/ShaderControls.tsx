@@ -29,50 +29,28 @@ import {
 } from '@mui/icons-material'
 import ChannelStatusChips from '../ChannelStatusChips/ChannelStatusChips'
 import { useAppStorage } from '../../hooks/useAppStorage'
+import { useMediaStreams } from '../../hooks/useMediaStreams'
 
 interface ShaderControlsProps {
   isPlaying: boolean
   isRecording: boolean
   isFullscreen: boolean
-  webcamEnabled: boolean
-  micEnabled: boolean
-  strudelAnalyser?: AnalyserNode | null
   onTogglePlay: () => void
-  onToggleWebcam: () => void
-  onToggleMic: () => void
-  onVolumeChange: (value: number) => void
-  onToggleMute: () => void
   onStartRecording: () => void
   onStopRecording: () => void
   onToggleFullscreen: () => void
-  /** Whether the editor panel is currently collapsed */
   editorCollapsed?: boolean
-  /** Callback to toggle editor collapse/expand */
   onToggleEditorCollapsed?: () => void
-  /** True when on a narrow/mobile viewport (affects icon direction) */
   isMobile?: boolean
-  /** Whether immersive mode is currently active */
   isImmersive?: boolean
-  /** Callback to toggle immersive mode */
   onToggleImmersive?: () => void
-  /** Background opacity (0–100) used in immersive mode */
-  immersiveOpacity?: number
-  /** Callback when the immersive opacity slider changes */
-  onImmersiveOpacityChange?: (opacity: number) => void
 }
 
 export default function ShaderControls({
   isPlaying,
   isRecording,
   isFullscreen,
-  webcamEnabled,
-  micEnabled,
-  strudelAnalyser,
   onTogglePlay,
-  onToggleWebcam,
-  onToggleMic,
-  onVolumeChange,
-  onToggleMute,
   onStartRecording,
   onStopRecording,
   onToggleFullscreen,
@@ -81,10 +59,19 @@ export default function ShaderControls({
   isMobile = false,
   isImmersive = false,
   onToggleImmersive,
-  immersiveOpacity = 50,
-  onImmersiveOpacityChange,
 }: ShaderControlsProps) {
-	const { muted, volume } = useAppStorage()
+	const { 
+		muted, setMuted,
+		volume, setVolume,
+		immersiveOpacity, setImmersiveOpacity,
+	} = useAppStorage()
+
+  const {
+    webcamEnabled,
+    micEnabled,
+		handleToggleWebcam,
+		handleToggleMic,
+  } = useMediaStreams()
 
   const Volume = (muted || volume === 0)
     ? VolumeOff
@@ -119,27 +106,23 @@ export default function ShaderControls({
       </Tooltip>
 
       <Tooltip title={webcamEnabled ? 'Disable Webcam (iChannel0)' : 'Enable Webcam (iChannel0)'}>
-        <Button onClick={onToggleWebcam} size="small" sx={{ color: webcamEnabled ? 'primary.main' : 'white' }}>
+        <Button onClick={handleToggleWebcam} size="small" sx={{ color: webcamEnabled ? 'primary.main' : 'white' }}>
           {webcamEnabled ? <Videocam /> : <VideocamOff />}
         </Button>
       </Tooltip>
 
       <Tooltip title={micEnabled ? 'Disable Microphone (iChannel1)' : 'Enable Microphone (iChannel1)'}>
-        <Button onClick={onToggleMic} size="small" sx={{ color: micEnabled ? 'primary.main' : 'white' }}>
+        <Button onClick={handleToggleMic} size="small" sx={{ color: micEnabled ? 'primary.main' : 'white' }}>
           {micEnabled ? <Mic /> : <MicOff />}
         </Button>
       </Tooltip>
 
-      <ChannelStatusChips
-        webcamEnabled={webcamEnabled}
-        micEnabled={micEnabled}
-        strudelAnalyser={strudelAnalyser}
-      />
+      <ChannelStatusChips />
 
       <Box sx={{ flex: 1 }} />
 
       <Tooltip title={muted ? 'Unmute' : 'Mute'}>
-        <Button onClick={onToggleMute} size="small" aria-label={muted ? 'Unmute' : 'Mute'} sx={{ color: 'white' }}>
+        <Button onClick={() => setMuted(!muted)} size="small" aria-label={muted ? 'Unmute' : 'Mute'} sx={{ color: 'white' }}>
           <Volume />
         </Button>
       </Tooltip>
@@ -150,7 +133,7 @@ export default function ShaderControls({
         max={100}
         size="small"
         aria-label="Volume"
-        onChange={(_e, val) => onVolumeChange(val as number)}
+        onChange={(_e, val) => setVolume(val as number)}
         sx={{
           width: 80,
           color: 'white',
@@ -188,7 +171,7 @@ export default function ShaderControls({
             <Tooltip title={`Opacity: ${immersiveOpacity}%`}>
               <Slider
                 value={immersiveOpacity}
-                onChange={(_e, val) => onImmersiveOpacityChange?.(val as number)}
+                onChange={(_e, val) => setImmersiveOpacity?.(val as number)}
                 min={0}
                 max={100}
                 step={1}
@@ -217,7 +200,7 @@ export default function ShaderControls({
             </Typography>
             <Slider
               value={immersiveOpacity}
-              onChange={(_e, val) => onImmersiveOpacityChange?.(val as number)}
+              onChange={(_e, val) => setImmersiveOpacity?.(val as number)}
               min={0}
               max={100}
               step={1}

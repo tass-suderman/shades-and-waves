@@ -24,6 +24,7 @@ export default () => {
 		vimMode, setVimMode,
 		fontSize, setFontSize,
 		warnOnOverwrite, setWarnOnOverwrite,
+		strudelAutocomplete, setStrudelAutocomplete,
 	} = useAppStorage()
 
   return (
@@ -58,6 +59,20 @@ export default () => {
               />
             }
             label={ <Typography variant="body2" children="Vim keybindings" /> }
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={strudelAutocomplete}
+                onChange={(e) => setStrudelAutocomplete(e.target.checked)}
+                size="small"
+                sx={{
+                  color: 'border.default',
+                  '&.Mui-checked': { color: 'accent' },
+                }}
+              />
+            }
+            label={ <Typography variant="body2" children="Strudel autocomplete" /> }
           />
           <Box sx={{ mt: 1.5 }}>
             <Typography variant="body2" sx={{ mb: 0.75 }} children="Font size" />

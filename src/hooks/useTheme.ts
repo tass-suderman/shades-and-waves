@@ -11,7 +11,7 @@ export const useTheme = () => {
 	const [currentTheme, setCurrentTheme] = useState<Theme>(kanagawa);
 	
 	useEffect(() => {
-		const storedTheme = localStorage.getItem("theme");
+		const storedTheme = localStorage.getItem("shader-playground:theme");
 		if (storedTheme) {
 			const foundTheme = themes.find(t => t.name === storedTheme);
 			if (foundTheme) {
@@ -21,6 +21,7 @@ export const useTheme = () => {
 	}, [theme]);
 
 	const changeTheme = (themeName: string) => {
+		console.log("Changing theme to", themeName);
 		const foundTheme = themes.find(t => t.name === themeName);
 		if (foundTheme) {
 			setCurrentTheme(foundTheme);

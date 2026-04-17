@@ -107,6 +107,7 @@ export default () => {
 
 				<SettingsSection title="Theme">
           <FormControl size="small" sx={{ minWidth: 200 }}>
+					{/* TODO -- This seems to default to Kanagawa on refresh */}
             <Select
               value={currentTheme.name}
               onChange={(e) => changeTheme(e.target.value)}

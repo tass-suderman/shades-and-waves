@@ -111,7 +111,7 @@ export const AppStorageProvider = ({children}: {children: React.ReactNode}) => {
 			immersiveOpacity, setImmersiveOpacity,
 			fontSize, setFontSize,
 			warnOnOverwrite, setWarnOnOverwrite,
-		strudelAutocomplete, setStrudelAutocomplete,
+			strudelAutocomplete, setStrudelAutocomplete,
 		}}>
 			{children}
 		</AppStorageContext.Provider>

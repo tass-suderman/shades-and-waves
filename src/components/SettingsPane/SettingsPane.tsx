@@ -24,6 +24,8 @@ export default () => {
 		vimMode, setVimMode,
 		fontSize, setFontSize,
 		warnOnOverwrite, setWarnOnOverwrite,
+		warnOnLoadExample, setWarnOnLoadExample,
+		warnOnLoadSaved, setWarnOnLoadSaved,
 	} = useAppStorage()
 
   return (
@@ -199,6 +201,38 @@ export default () => {
             }
             label={
               <Typography variant="body2" children="Warn before overwriting a saved entry" />
+            }
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={warnOnLoadSaved}
+                onChange={(e) => setWarnOnLoadSaved(e.target.checked)}
+                size="small"
+                sx={{
+                  color: 'border.default',
+                  '&.Mui-checked': { color: 'accent' },
+                }}
+              />
+            }
+            label={
+              <Typography variant="body2" children="Warn before loading saved content" />
+            }
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={warnOnLoadExample}
+                onChange={(e) => setWarnOnLoadExample(e.target.checked)}
+                size="small"
+                sx={{
+                  color: 'border.default',
+                  '&.Mui-checked': { color: 'accent' },
+                }}
+              />
+            }
+            label={
+              <Typography variant="body2" children="Warn before loading an example" />
             }
           />
 				</SettingsSection>

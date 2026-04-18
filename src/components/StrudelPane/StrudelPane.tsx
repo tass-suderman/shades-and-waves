@@ -215,6 +215,9 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
     mirrorRef.current.changeSetting('fontSize', fontSizeRef.current)
     mirrorRef.current.setTheme(mapToStrudelTheme(themeNameRef.current))
     return () => {
+      // Persist the current code so it is restored if the component remounts
+      // (e.g. when toggling immersive mode)
+      saveStrudelCode(mirror.code ?? DEFAULT_STRUDEL_CODE)
       if (analyserRef.current) {
         const dg = destinationGainRef.current
         if (dg) {

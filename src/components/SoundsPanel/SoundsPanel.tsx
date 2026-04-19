@@ -5,6 +5,7 @@ import IconButton from '@mui/material/IconButton'
 import Button from '@mui/material/Button'
 import InputBase from '@mui/material/InputBase'
 import Tooltip from '@mui/material/Tooltip'
+import Snackbar from '@mui/material/Snackbar'
 import DeleteIcon from '@mui/icons-material/Delete'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import { SOUND_CATEGORIES, SoundCategory } from '../../utility/strudel/soundCategories'
@@ -39,6 +40,7 @@ export default function SoundsPanel() {
   const { userSamples, setUserSamples } = useAppStorage()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [deleteTarget, setDeleteTarget] = useState<UserSample | null>(null)
+  const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null)
 
   const handleUploadClick = () => fileInputRef.current?.click()
 
@@ -48,22 +50,27 @@ export default function SoundsPanel() {
     if (files.length === 0) return
 
     const newSamples: UserSample[] = []
+    const skipped: string[] = []
     for (const file of files) {
       if (file.size > MAX_SAMPLE_SIZE_BYTES) {
-        alert(`"${file.name}" is too large (max 5 MB). Skipping.`)
+        skipped.push(file.name)
         continue
       }
       try {
         const audioData = await fileToBase64(file)
         newSamples.push({
-          id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          id: crypto.randomUUID(),
           title: baseName(file.name),
           fileName: file.name,
           audioData,
         })
-      } catch {
-        console.error(`Failed to read sample: ${file.name}`)
+      } catch (err) {
+        console.error(`Failed to read sample: ${file.name}`, err)
       }
+    }
+
+    if (skipped.length > 0) {
+      setSnackbarMessage(`Skipped (> 5 MB): ${skipped.join(', ')}`)
     }
 
     if (newSamples.length > 0) {
@@ -242,6 +249,14 @@ export default function SoundsPanel() {
         title={deleteTarget?.title ?? ''}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}
+      />
+
+      <Snackbar
+        open={snackbarMessage !== null}
+        message={snackbarMessage ?? ''}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
     </>
   )

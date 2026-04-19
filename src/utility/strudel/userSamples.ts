@@ -21,8 +21,7 @@ async function decodeUserSample(sample: UserSample): Promise<AudioBuffer | null>
 
   try {
     const binary = atob(sample.audioData)
-    const bytes = new Uint8Array(binary.length)
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0))
     // slice(0) so decodeAudioData gets its own detached copy
     const buffer = await ctx.decodeAudioData(bytes.buffer.slice(0))
     bufferCache.set(sample.id, { ctx, buffer })

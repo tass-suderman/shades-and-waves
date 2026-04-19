@@ -83,8 +83,6 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   const destinationGainRef = useRef<GainNode | null>(null)
   const isPlayingRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  // Capture the saved code once at mount – used as StrudelMirror's initialCode
-  const savedStrudelCode = useRef(getInitialStrudelCode(DEFAULT_STRUDEL_CODE))
   const [isPlaying, setIsPlaying] = useState(false)
   const [strudelTitle, setStrudelTitle] = useState(
     () => getInitialStrudelTitle(DEFAULT_STRUDEL_TITLE),
@@ -135,10 +133,14 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
 
   useEffect(() => {
     if (!rootRef.current) return
+    // Read initial code inside the effect so it runs after the previous
+    // StrudelPane instance's cleanup has flushed its code to localStorage
+    // (e.g. when toggling immersive mode causes an unmount/remount cycle).
+    const initialCode = getInitialStrudelCode(DEFAULT_STRUDEL_CODE)
     initAudioOnFirstClick()
     const mirror = new StrudelMirror({
       root: rootRef.current,
-      initialCode: savedStrudelCode.current,
+      initialCode,
       prebake: minimalPrebake,
       defaultOutput: webaudioOutput,
       getTime: () => getAudioContext()?.currentTime ?? 0,

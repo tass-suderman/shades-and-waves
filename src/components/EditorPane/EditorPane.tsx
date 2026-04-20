@@ -19,15 +19,22 @@ interface EditorPaneProps {
   onRun: (code: string) => void
   shaderError: string | null
   onSave: (title: string, content: string) => void
+  hideHeader?: boolean
 }
 
 export interface EditorPaneHandle {
   loadExample: (title: string, content: string) => void
   run: () => void
+  getTitle: () => string
+  setTitle: (title: string) => void
+  save: () => void
+  triggerImport: () => void
+  triggerExport: () => void
+  toggleUniforms: () => void
 }
 
 export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane(
-  { initialCode, onRun, shaderError, onSave },
+  { initialCode, onRun, shaderError, onSave, hideHeader = false },
   ref,
 ) {
   const [pendingSource, setPendingSource] = useState<string>(initialCode)
@@ -68,7 +75,41 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
     run() {
       onRun(pendingSourceRef.current)
     },
-  }), [setPendingSource, onRun])
+    getTitle() {
+      return shaderTitle
+    },
+    setTitle(title: string) {
+      setShaderTitle(title)
+      saveGlslTitle(title)
+    },
+    save() {
+      if (onSave) {
+        onSave(shaderTitle, pendingSourceRef.current)
+      }
+    },
+    triggerImport() {
+      fileInputRef.current?.click()
+    },
+    triggerExport() {
+      const blob = new Blob([pendingSourceRef.current], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const safeName = shaderTitle
+        .replace(/[^\w\s.-]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^[_\s]+|[_\s]+$/g, '')
+        .trim() || 'shader'
+      a.download = safeName + '.glsl'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    },
+    toggleUniforms() {
+      setUniformsOpen(v => !v)
+    },
+  }), [shaderTitle, onSave, onRun])
 
   // Enable / disable vim mode whenever the prop changes or the editor mounts
   useEffect(() => {
@@ -224,21 +265,23 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
         bgcolor: 'background.panel',
       }}
     >
-      <ShaderHeader
-        title={shaderTitle}
-        onTitleChange={handleTitleChange}
-        onImport={handleImportClick}
-        onExport={handleExport}
-        onSave={handleSave}
-        onRun={handleRun}
-        titleAriaLabel="Shader title"
-        importAriaLabel="Import shader from file"
-        exportAriaLabel="Export shader to file"
-        runLabel="Run Shader"
-        runColor="primary"
-        onShowUniforms={() => setUniformsOpen(v => !v)}
-        uniformsActive={uniformsOpen}
-      />
+      {!hideHeader && (
+        <ShaderHeader
+          title={shaderTitle}
+          onTitleChange={handleTitleChange}
+          onImport={handleImportClick}
+          onExport={handleExport}
+          onSave={handleSave}
+          onRun={handleRun}
+          titleAriaLabel="Shader title"
+          importAriaLabel="Import shader from file"
+          exportAriaLabel="Export shader to file"
+          runLabel="Run Shader"
+          runColor="primary"
+          onShowUniforms={() => setUniformsOpen(v => !v)}
+          uniformsActive={uniformsOpen}
+        />
+      )}
 
       {/* Hidden file input for import */}
       <input

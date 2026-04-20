@@ -88,6 +88,7 @@ export const ViewReducer = ({
 			setOverwriteDialogOpen={setOverwriteDialogOpen}
 			setDontShowAgain={setDontShowAgain}
 			commitSave={commitSave}
+			hideHeader={displayMode === 'immersive'}
 		/>
 	)
 	const overwriteDialog = (
@@ -118,8 +119,11 @@ export const ViewReducer = ({
 					isMobile={isMobile}
 					outerContainerRef={outerContainerRef}
 					shaderRef={shaderRef}
-					tabBar={tabBar}
 					editorContent={editorContent}
+					viewMode={viewMode}
+					setViewMode={setViewMode}
+					strudelRef={strudelRef}
+					editorRef={editorRef}
 				/>
 			) : isMobile ? (
 				<MobileView

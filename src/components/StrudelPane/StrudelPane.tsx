@@ -60,16 +60,23 @@ export interface StrudelPaneHandle {
   pause: () => void
   loadExample: (title: string, content: string) => void
   closeSounds: () => void
+  getTitle: () => string
+  setTitle: (title: string) => void
+  save: () => void
+  triggerImport: () => void
+  triggerExport: () => void
+  toggleSounds: () => void
 }
 
 interface StrudelPaneProps {
   onAnalyserReady: (analyser: AnalyserNode | null) => void
   onAudioStreamReady?: (stream: MediaStream | null) => void
   onSave: (title: string, content: string) => void
+  hideHeader?: boolean
 }
 
 const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function StrudelPane(
-  { onAnalyserReady, onAudioStreamReady, onSave },
+  { onAnalyserReady, onAudioStreamReady, onSave, hideHeader = false },
   ref,
 ) {
 	const { vimMode, muted, volume, fontSize } = useAppStorage()
@@ -131,7 +138,41 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
     closeSounds() {
       setSoundsOpen(false)
     },
-  }), [])
+    getTitle() {
+      return strudelTitle
+    },
+    setTitle(title: string) {
+      setStrudelTitle(title)
+      saveStrudelTitle(title)
+    },
+    save() {
+      const code = mirrorRef.current?.code ?? DEFAULT_STRUDEL_CODE
+      onSave(strudelTitle, code)
+    },
+    triggerImport() {
+      fileInputRef.current?.click()
+    },
+    triggerExport() {
+      const code = mirrorRef.current?.code ?? DEFAULT_STRUDEL_CODE
+      const blob = new Blob([code], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const safeName = strudelTitle
+        .replace(/[^\w\s.-]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^[_\s]+|[_\s]+$/g, '')
+        .trim() || 'pattern'
+      a.download = safeName + '.strudel'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    },
+    toggleSounds() {
+      setSoundsOpen(v => !v)
+    },
+  }), [strudelTitle, onSave])
 
   useEffect(() => {
     if (!rootRef.current) return
@@ -356,23 +397,25 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
 
   return (
     <Box ref={soundsPaneRef} sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.panel' }}>
-      <EditorHeader
-        title={strudelTitle}
-        isPlaying={isPlaying}
-        onTitleChange={handleTitleChange}
-        onImport={handleImportClick}
-        onExport={handleExport}
-        onSave={handleSave}
-        onShowSounds={() => setSoundsOpen(v => !v)}
-        soundsActive={soundsOpen}
-        onRun={handleRun}
-        onStop={handleStop}
-        titleAriaLabel="Strudel pattern title"
-        importAriaLabel="Import pattern from file"
-        exportAriaLabel="Export pattern to file"
-        runLabel="Play Strudel"
-        runColor="success"
-      />
+      {!hideHeader && (
+        <EditorHeader
+          title={strudelTitle}
+          isPlaying={isPlaying}
+          onTitleChange={handleTitleChange}
+          onImport={handleImportClick}
+          onExport={handleExport}
+          onSave={handleSave}
+          onShowSounds={() => setSoundsOpen(v => !v)}
+          soundsActive={soundsOpen}
+          onRun={handleRun}
+          onStop={handleStop}
+          titleAriaLabel="Strudel pattern title"
+          importAriaLabel="Import pattern from file"
+          exportAriaLabel="Export pattern to file"
+          runLabel="Play Strudel"
+          runColor="success"
+        />
+      )}
 
       {/* Hidden file input for import */}
       <input

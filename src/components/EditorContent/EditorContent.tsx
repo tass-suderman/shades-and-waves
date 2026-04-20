@@ -23,6 +23,7 @@ export interface EditorContentProps {
 	setOverwriteDialogOpen: (open: boolean) => void
 	setViewMode: (mode: ViewMode) => void
 	commitSave: (title: string, content: string, type: 'shader' | 'pattern') => void
+	hideHeader?: boolean
 }
 
 export const EditorContent = ({
@@ -36,7 +37,8 @@ export const EditorContent = ({
 	setDontShowAgain,
 	setOverwriteDialogOpen,
 	setViewMode,
-	commitSave
+	commitSave,
+	hideHeader = false,
 }: EditorContentProps) => {
 
   const savedContent = useSavedContent()
@@ -133,6 +135,7 @@ export const EditorContent = ({
 						onRun={handleRun}
 						shaderError={shaderError}
 						onSave={handleSaveShader}
+						hideHeader={hideHeader}
 					/>
 				</Box>
 
@@ -148,6 +151,7 @@ export const EditorContent = ({
 						onAnalyserReady={setAnalyzer}
 						onAudioStreamReady={setStrudelAudioStream}
 						onSave={handleSavePattern}
+						hideHeader={hideHeader}
 					/>
 				</Box>
 			</Box>

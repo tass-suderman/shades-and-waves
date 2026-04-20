@@ -5,27 +5,37 @@ import { type ShaderPaneHandle } from '../ShaderPane/ShaderPane'
 import { useEffect, useMemo, useState } from 'react'
 import { useAppStorage } from '../../hooks/useAppStorage'
 import { useTheme } from '../../hooks/useTheme'
+import { ImmersiveTopBar } from '../ImmersiveTopBar/ImmersiveTopBar'
+import { type ViewMode } from '../../constants/tabConfigs'
+import { type EditorPaneHandle } from '../EditorPane/EditorPane'
+import { type StrudelPaneHandle } from '../StrudelPane/StrudelPane'
 
 export interface ImmersiveViewProps {
 	outerContainerRef: React.RefObject<HTMLDivElement>
 	shaderRef: React.RefObject<ShaderPaneHandle>
-	tabBar: React.ReactNode
 	editorContent: React.ReactNode
 	shaderSource: string
 	setShaderError: (error: string | null) => void
 	isMobile: boolean
 	handleToggleImmersive: () => void
+	viewMode: ViewMode
+	setViewMode: (mode: ViewMode) => void
+	strudelRef: React.RefObject<StrudelPaneHandle>
+	editorRef: React.RefObject<EditorPaneHandle>
 }
 
 export const ImmersiveView = ({
 	outerContainerRef,
 	shaderRef,
-	tabBar,
 	editorContent,
 	shaderSource,
 	setShaderError,
 	isMobile,
 	handleToggleImmersive,
+	viewMode,
+	setViewMode,
+	strudelRef,
+	editorRef,
 }: ImmersiveViewProps) => {
   const [immersiveShaderPlaying, setImmersiveShaderPlaying] = useState(true)
   const [immersiveShaderRecording, setImmersiveShaderRecording] = useState(false)
@@ -99,7 +109,12 @@ export const ImmersiveView = ({
 					aria-hidden={topBarHidden}
 				>
 				<ThemeProvider theme={immersiveTheme}>
-					{tabBar}
+					<ImmersiveTopBar
+						viewMode={viewMode}
+						setViewMode={setViewMode}
+						strudelRef={strudelRef}
+						editorRef={editorRef}
+					/>
 					{editorContent}
 					</ThemeProvider>
 				</Box>

@@ -1,5 +1,5 @@
 import {Box} from '@mui/material'
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo } from 'react'
 import EditorPane, { type EditorPaneHandle } from '../EditorPane/EditorPane'
 import StrudelPane, { type StrudelPaneHandle } from '../StrudelPane/StrudelPane'
 import SettingsPane from '../SettingsPane/SettingsPane'
@@ -13,8 +13,8 @@ import { useAppStorage } from '../../hooks/useAppStorage'
 
 export interface EditorContentProps {
 	viewMode: ViewMode
-	initialShaderCode: string
 	shaderError: string | null
+	editorRef: React.RefObject<EditorPaneHandle>
 	strudelRef: React.RefObject<StrudelPaneHandle>
 	setShaderSource: (source: string) => void
 	setOverwritePending: (pending: { title: string, content: string, type: 'shader' | 'pattern' } | null) => void
@@ -26,8 +26,8 @@ export interface EditorContentProps {
 
 export const EditorContent = ({
 	viewMode,
-	initialShaderCode,
 	shaderError,
+	editorRef,
 	strudelRef,
 	setShaderSource,
 	setOverwritePending,
@@ -52,8 +52,6 @@ export const EditorContent = ({
 
 	const { setAnalyzer } = useStrudelAnalyzer();
 	const { setStrudelAudioStream } = useStrudelAudioStream()
-
-  const editorRef = useRef<EditorPaneHandle>(null)
 
   const handleLoadGlslExample = useCallback((title: string, content: string) => {
     editorRef.current?.loadExample(title, content)
@@ -129,7 +127,6 @@ export const EditorContent = ({
 				}}>
 					<EditorPane
 						ref={editorRef}
-						initialCode={initialShaderCode}
 						onRun={handleRun}
 						shaderError={shaderError}
 						onSave={handleSaveShader}

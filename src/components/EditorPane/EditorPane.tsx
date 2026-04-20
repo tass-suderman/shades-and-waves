@@ -11,13 +11,12 @@ import ShaderError from '../ShaderError/ShaderError'
 import UniformsPanel from '../UniformsPanel/UniformsPanel'
 import { glslLanguage, glslCompletions } from '../../utility/shader/glslCodemirror'
 import { getGlslThemeExtension } from '../../utility/shader/codemirrorThemes'
-import { saveGlslCode, saveGlslTitle, getInitialGlslTitle, useAppStorage } from '../../hooks/useAppStorage'
+import { saveGlslCode, saveGlslTitle, getInitialGlslCode, getInitialGlslTitle, useAppStorage } from '../../hooks/useAppStorage'
 import { useTheme } from '../../hooks/useTheme'
 
 const DEFAULT_SHADER_TITLE = 'Fragment Shader (GLSL)'
 
 interface EditorPaneProps {
-  initialCode: string
   onRun: (code: string) => void
   shaderError: string | null
   onSave: (title: string, content: string) => void
@@ -25,10 +24,12 @@ interface EditorPaneProps {
 
 export interface EditorPaneHandle {
   loadExample: (title: string, content: string) => void
+  run: () => void
+  closeUniforms: () => void
 }
 
 export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane(
-  { initialCode, onRun, shaderError, onSave },
+  { onRun, shaderError, onSave },
   ref,
 ) {
   const [shaderTitle, setShaderTitle] = useState(
@@ -45,15 +46,16 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
   const themeCompartment = useRef(new Compartment())
   const vimCompartment = useRef(new Compartment())
   const fontSizeCompartment = useRef(new Compartment())
+  const autocompleteCompartment = useRef(new Compartment())
 
   // Keep a ref to always have the latest source without stale closures
-  const pendingSourceRef = useRef(initialCode)
+  const pendingSourceRef = useRef(getInitialGlslCode())
 
   // Keep a ref to the latest onRun so the keymap closure never goes stale
   const onRunRef = useRef(onRun)
   onRunRef.current = onRun
 
-  const { vimMode, fontSize } = useAppStorage()
+  const { vimMode, fontSize, glslAutocomplete } = useAppStorage()
   const { currentTheme } = useTheme()
 
   // Capture initial values in refs so the mount effect only runs once
@@ -63,6 +65,8 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
   fontSizeRef.current = fontSize
   const themeNameRef = useRef(currentTheme.name)
   themeNameRef.current = currentTheme.name
+  const glslAutocompleteRef = useRef(glslAutocomplete)
+  glslAutocompleteRef.current = glslAutocomplete
 
   // ---------------------------------------------------------------------------
   // Mount the CodeMirror EditorView exactly once
@@ -84,9 +88,8 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
         indentOnInput(),
         EditorView.lineWrapping,
 
-        // GLSL language + autocomplete
+        // GLSL language
         glslLanguage,
-        autocompletion({ override: [glslCompletions] }),
 
         // Keymaps
         keymap.of([
@@ -105,11 +108,14 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
           }
         }),
 
-        // Dynamic compartments (theme / vim / font size)
+        // Dynamic compartments (theme / vim / font size / autocomplete)
         themeCompartment.current.of(getGlslThemeExtension(themeNameRef.current)),
         vimCompartment.current.of(vimModeRef.current ? vim() : []),
         fontSizeCompartment.current.of(
           EditorView.theme({ '&': { fontSize: `${fontSizeRef.current}px` } }),
+        ),
+        autocompleteCompartment.current.of(
+          glslAutocompleteRef.current ? autocompletion({ override: [glslCompletions] }) : [],
         ),
       ],
     })
@@ -124,7 +130,7 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
   }, [])
 
   // ---------------------------------------------------------------------------
-  // Imperative handle – load an example into the editor
+  // Imperative handle – load an example, run, or close uniforms
   // ---------------------------------------------------------------------------
   useImperativeHandle(ref, () => ({
     loadExample(title: string, content: string) {
@@ -139,6 +145,12 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
       setShaderTitle(title)
       saveGlslTitle(title)
       onRunRef.current(content)
+    },
+    run() {
+      onRunRef.current(pendingSourceRef.current)
+    },
+    closeUniforms() {
+      setUniformsOpen(false)
     },
   }), [])
 
@@ -172,6 +184,17 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
       ),
     })
   }, [currentTheme.name])
+
+  // ---------------------------------------------------------------------------
+  // Reconfigure autocomplete dynamically
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: autocompleteCompartment.current.reconfigure(
+        glslAutocomplete ? autocompletion({ override: [glslCompletions] }) : [],
+      ),
+    })
+  }, [glslAutocomplete])
 
   // ---------------------------------------------------------------------------
   // Callbacks

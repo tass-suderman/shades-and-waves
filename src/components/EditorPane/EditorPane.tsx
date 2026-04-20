@@ -1,14 +1,16 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
-import Editor from '@monaco-editor/react'
-import type { OnMount, BeforeMount } from '@monaco-editor/react'
-// import type { editor as MonacoEditorNS } from 'monaco-editor'
-import { initVimMode, type VimAdapterInstance } from 'monaco-vim'
+import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter, drawSelection } from '@codemirror/view'
+import { EditorState, Compartment } from '@codemirror/state'
+import { defaultKeymap, historyKeymap, history } from '@codemirror/commands'
+import { bracketMatching, indentOnInput } from '@codemirror/language'
+import { autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap } from '@codemirror/autocomplete'
+import { vim } from '@replit/codemirror-vim'
 import ShaderHeader from '../EditorHeader/EditorHeader'
 import ShaderError from '../ShaderError/ShaderError'
 import UniformsPanel from '../UniformsPanel/UniformsPanel'
-import { GLSL_MONARCH_TOKENS, GLSL_LANGUAGE_CONFIG } from '../../utility/shader/glslLanguage'
-import { ensureMonacoThemes, themeNameToMonaco } from '../../utility/shader/monacoThemes'
+import { glslLanguage, glslCompletions } from '../../utility/shader/glslCodemirror'
+import { getGlslThemeExtension } from '../../utility/shader/codemirrorThemes'
 import { saveGlslCode, saveGlslTitle, getInitialGlslCode, getInitialGlslTitle, useAppStorage } from '../../hooks/useAppStorage'
 import { useTheme } from '../../hooks/useTheme'
 
@@ -30,174 +32,176 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
   { onRun, shaderError, onSave },
   ref,
 ) {
-  const [pendingSource, setPendingSource] = useState<string>(() => getInitialGlslCode())
   const [shaderTitle, setShaderTitle] = useState(
     () => getInitialGlslTitle(DEFAULT_SHADER_TITLE),
   )
   const [uniformsOpen, setUniformsOpen] = useState(false)
   const [uniformsSplitRatio, setUniformsSplitRatio] = useState(50)
   const editorPaneRef = useRef<HTMLDivElement>(null)
-  // TODO -- Fix me
-  // const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const editorRef = useRef<any>(null)
-  const monacoRef = useRef<Parameters<BeforeMount>[0] | null>(null)
+  const cmRootRef = useRef<HTMLDivElement>(null)
+  const viewRef = useRef<EditorView | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  // Off-DOM element that monaco-vim writes its status into – never appended to
-  // the document so nothing is rendered to the user.
-  const statusBarRef = useRef(document.createElement('div'))
-  const vimModeInstanceRef = useRef<VimAdapterInstance | null>(null)
 
-  // Keep a ref so Monaco keyboard shortcuts always call with latest pendingSource
-  const pendingSourceRef = useRef(pendingSource)
-  pendingSourceRef.current = pendingSource
+  // Compartments allow dynamic reconfiguration of individual extensions
+  const themeCompartment = useRef(new Compartment())
+  const vimCompartment = useRef(new Compartment())
+  const fontSizeCompartment = useRef(new Compartment())
+  const autocompleteCompartment = useRef(new Compartment())
 
-	const { vimMode, fontSize, glslAutocomplete } = useAppStorage()
-	const { currentTheme } = useTheme()
+  // Keep a ref to always have the latest source without stale closures
+  const pendingSourceRef = useRef(getInitialGlslCode())
 
-  // Expose loadExample imperatively (used by App when a GLSL example is selected)
+  // Keep a ref to the latest onRun so the keymap closure never goes stale
+  const onRunRef = useRef(onRun)
+  onRunRef.current = onRun
+
+  const { vimMode, fontSize, glslAutocomplete } = useAppStorage()
+  const { currentTheme } = useTheme()
+
+  // Capture initial values in refs so the mount effect only runs once
+  const vimModeRef = useRef(vimMode)
+  vimModeRef.current = vimMode
+  const fontSizeRef = useRef(fontSize)
+  fontSizeRef.current = fontSize
+  const themeNameRef = useRef(currentTheme.name)
+  themeNameRef.current = currentTheme.name
+  const glslAutocompleteRef = useRef(glslAutocomplete)
+  glslAutocompleteRef.current = glslAutocomplete
+
+  // ---------------------------------------------------------------------------
+  // Mount the CodeMirror EditorView exactly once
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (!cmRootRef.current) return
+
+    const state = EditorState.create({
+      doc: pendingSourceRef.current,
+      extensions: [
+        // Core editing features
+        history(),
+        drawSelection(),
+        lineNumbers(),
+        highlightActiveLine(),
+        highlightActiveLineGutter(),
+        bracketMatching(),
+        closeBrackets(),
+        indentOnInput(),
+        EditorView.lineWrapping,
+
+        // GLSL language
+        glslLanguage,
+
+        // Keymaps
+        keymap.of([
+          ...closeBracketsKeymap,
+          ...defaultKeymap,
+          ...historyKeymap,
+          ...completionKeymap,
+        ]),
+
+        // Change listener – keep ref in sync and persist to localStorage
+        EditorView.updateListener.of((update) => {
+          if (update.docChanged) {
+            const value = update.state.doc.toString()
+            pendingSourceRef.current = value
+            saveGlslCode(value)
+          }
+        }),
+
+        // Dynamic compartments (theme / vim / font size / autocomplete)
+        themeCompartment.current.of(getGlslThemeExtension(themeNameRef.current)),
+        vimCompartment.current.of(vimModeRef.current ? vim() : []),
+        fontSizeCompartment.current.of(
+          EditorView.theme({ '&': { fontSize: `${fontSizeRef.current}px` } }),
+        ),
+        autocompleteCompartment.current.of(
+          glslAutocompleteRef.current ? autocompletion({ override: [glslCompletions] }) : [],
+        ),
+      ],
+    })
+
+    const view = new EditorView({ state, parent: cmRootRef.current })
+    viewRef.current = view
+
+    return () => {
+      view.destroy()
+      viewRef.current = null
+    }
+  }, [])
+
+  // ---------------------------------------------------------------------------
+  // Imperative handle – load an example, run, or close uniforms
+  // ---------------------------------------------------------------------------
   useImperativeHandle(ref, () => ({
     loadExample(title: string, content: string) {
-      editorRef.current?.setValue(content)
-      setPendingSource(content)
+      const view = viewRef.current
+      if (view) {
+        view.dispatch({
+          changes: { from: 0, to: view.state.doc.length, insert: content },
+        })
+      }
+      pendingSourceRef.current = content
       saveGlslCode(content)
       setShaderTitle(title)
       saveGlslTitle(title)
-      onRun(content)
+      onRunRef.current(content)
     },
     run() {
-      onRun(pendingSourceRef.current)
+      onRunRef.current(pendingSourceRef.current)
     },
     closeUniforms() {
       setUniformsOpen(false)
     },
-  }), [setPendingSource, onRun])
+  }), [])
 
-  // Enable / disable vim mode whenever the prop changes or the editor mounts
+  // ---------------------------------------------------------------------------
+  // Reconfigure vim mode dynamically
+  // ---------------------------------------------------------------------------
   useEffect(() => {
-    const editor = editorRef.current
-    if (!editor) return
-
-    if (vimMode) {
-      if (!vimModeInstanceRef.current) {
-        vimModeInstanceRef.current = initVimMode(editor, statusBarRef.current)
-      }
-    } else {
-      if (vimModeInstanceRef.current) {
-        vimModeInstanceRef.current.dispose()
-        vimModeInstanceRef.current = null
-      }
-    }
+    viewRef.current?.dispatch({
+      effects: vimCompartment.current.reconfigure(vimMode ? vim() : []),
+    })
   }, [vimMode])
 
-  // Update Monaco font size whenever it changes
+  // ---------------------------------------------------------------------------
+  // Reconfigure font size dynamically
+  // ---------------------------------------------------------------------------
   useEffect(() => {
-    editorRef.current?.updateOptions({ fontSize })
+    viewRef.current?.dispatch({
+      effects: fontSizeCompartment.current.reconfigure(
+        EditorView.theme({ '&': { fontSize: `${fontSize}px` } }),
+      ),
+    })
   }, [fontSize])
 
-  // Toggle Monaco autocomplete whenever the setting changes
+  // ---------------------------------------------------------------------------
+  // Reconfigure theme dynamically
+  // ---------------------------------------------------------------------------
   useEffect(() => {
-    editorRef.current?.updateOptions({
-      quickSuggestions: glslAutocomplete,
-      suggestOnTriggerCharacters: glslAutocomplete,
-      wordBasedSuggestions: glslAutocomplete ? 'currentDocument' : 'off',
+    viewRef.current?.dispatch({
+      effects: themeCompartment.current.reconfigure(
+        getGlslThemeExtension(currentTheme.name),
+      ),
+    })
+  }, [currentTheme.name])
+
+  // ---------------------------------------------------------------------------
+  // Reconfigure autocomplete dynamically
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    viewRef.current?.dispatch({
+      effects: autocompleteCompartment.current.reconfigure(
+        glslAutocomplete ? autocompletion({ override: [glslCompletions] }) : [],
+      ),
     })
   }, [glslAutocomplete])
 
-  // Forward vim status changes to the parent (used in split mode for a shared bar)
-  // (Removed – vim status bar is no longer displayed)
-
+  // ---------------------------------------------------------------------------
+  // Callbacks
+  // ---------------------------------------------------------------------------
   const handleRun = useCallback(() => {
-    onRun(pendingSourceRef.current)
-  }, [onRun])
-
-  const handleBeforeMount = useCallback<BeforeMount>((monaco) => {
-    monacoRef.current = monaco
-    monaco.languages.register({ id: 'glsl' })
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    monaco.languages.setMonarchTokensProvider('glsl', GLSL_MONARCH_TOKENS as any)
-    monaco.languages.setLanguageConfiguration('glsl', GLSL_LANGUAGE_CONFIG)
-    ensureMonacoThemes(monaco)
-
-    // Register a GLSL keyword/function/variable completion provider.
-    // The provider is always registered (registration happens once on mount),
-    // and autocomplete is activated or suppressed via the quickSuggestions and
-    // suggestOnTriggerCharacters options controlled by the glslAutocomplete setting.
-    monaco.languages.registerCompletionItemProvider('glsl', {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      provideCompletionItems: (model: any, position: any) => {
-        const word = model.getWordUntilPosition(position)
-        const range = {
-          startLineNumber: position.lineNumber,
-          endLineNumber: position.lineNumber,
-          startColumn: word.startColumn,
-          endColumn: word.endColumn,
-        }
-        const suggestions = [
-          ...GLSL_MONARCH_TOKENS.keywords.map(kw => ({
-            label: kw,
-            kind: monaco.languages.CompletionItemKind.Keyword,
-            insertText: kw,
-            range,
-          })),
-          ...GLSL_MONARCH_TOKENS.typeKeywords.map(kw => ({
-            label: kw,
-            kind: monaco.languages.CompletionItemKind.Class,
-            insertText: kw,
-            range,
-          })),
-          ...GLSL_MONARCH_TOKENS.qualifiers.map(kw => ({
-            label: kw,
-            kind: monaco.languages.CompletionItemKind.Keyword,
-            insertText: kw,
-            range,
-          })),
-          ...GLSL_MONARCH_TOKENS.builtinFunctions.map(fn => ({
-            label: fn,
-            kind: monaco.languages.CompletionItemKind.Function,
-            insertText: fn,
-            range,
-          })),
-          ...GLSL_MONARCH_TOKENS.builtinVariables.map(v => ({
-            label: v,
-            kind: monaco.languages.CompletionItemKind.Variable,
-            insertText: v,
-            range,
-          })),
-        ]
-        return { suggestions }
-      },
-    })
+    onRunRef.current(pendingSourceRef.current)
   }, [])
-
-  // Switch Monaco editor theme whenever the app theme changes
-  useEffect(() => {
-    monacoRef.current?.editor.setTheme(themeNameToMonaco(currentTheme.name))
-  }, [currentTheme.name])
-
-  const handleEditorMount = useCallback<OnMount>((editor) => {
-    editorRef.current = editor
-    // Initialize vim mode immediately if it is already enabled when the editor mounts
-    if (vimMode && !vimModeInstanceRef.current) {
-      vimModeInstanceRef.current = initVimMode(editor, statusBarRef.current)
-    }
-    // Clean up vim mode when the editor is destroyed
-    editor.onDidDispose(() => {
-      if (vimModeInstanceRef.current) {
-        vimModeInstanceRef.current.dispose()
-        vimModeInstanceRef.current = null
-      }
-    })
-  }, [vimMode])
-
-  // Monaco's onChange fires after its built-in debounce (~300 ms), so saving
-  // directly here avoids extra debounce logic while keeping localStorage current.
-  const handleEditorChange = useCallback((value: string | undefined) => {
-    if (value !== undefined) {
-      setPendingSource(value)
-      saveGlslCode(value)
-    }
-  }, [setPendingSource])
 
   const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setShaderTitle(e.target.value)
@@ -205,9 +209,7 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
   }, [])
 
   const handleSave = useCallback(() => {
-    if (onSave) {
-      onSave(shaderTitle, pendingSourceRef.current)
-    }
+    onSave(shaderTitle, pendingSourceRef.current)
   }, [onSave, shaderTitle])
 
   const handleExport = useCallback(() => {
@@ -239,12 +241,14 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
     reader.onload = (evt) => {
       const content = evt.target?.result as string
       if (content !== undefined) {
-        // Update the editor display
-        editorRef.current?.setValue(content)
-        // Update parent state (also triggered by Monaco onChange, but set directly for safety)
-        setPendingSource(content)
+        const view = viewRef.current
+        if (view) {
+          view.dispatch({
+            changes: { from: 0, to: view.state.doc.length, insert: content },
+          })
+        }
+        pendingSourceRef.current = content
         saveGlslCode(content)
-        // Set title from filename, stripping the extension
         const name = file.name.replace(/\.[^.]+$/, '')
         setShaderTitle(name)
         saveGlslTitle(name)
@@ -253,7 +257,7 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
     reader.readAsText(file)
     // Reset so the same file can be re-imported
     e.target.value = ''
-  }, [setPendingSource])
+  }, [])
 
   /** Drag handler for the uniforms-split divider */
   const handleUniformsDividerMouseDown = useCallback((e: React.MouseEvent) => {
@@ -313,33 +317,19 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
 
       <ShaderError error={shaderError} />
 
-      {/* Monaco editor – height shrinks to give space to the uniforms panel when open */}
-      <Box sx={{
-        flex: uniformsOpen ? undefined : 1,
-        height: uniformsOpen ? `${uniformsSplitRatio}%` : undefined,
-        overflow: 'hidden',
-      }}>
-        <Editor
-          height="100%"
-          defaultLanguage="glsl"
-          defaultValue={pendingSource}
-          onChange={handleEditorChange}
-          beforeMount={handleBeforeMount}
-          onMount={handleEditorMount}
-          theme={themeNameToMonaco(currentTheme.name)}
-          options={{
-            minimap: { enabled: false },
-            fontSize: fontSize,
-            lineNumbers: 'on',
-            scrollBeyondLastLine: false,
-            wordWrap: 'on',
-            automaticLayout: true,
-            quickSuggestions: glslAutocomplete,
-            suggestOnTriggerCharacters: glslAutocomplete,
-            wordBasedSuggestions: glslAutocomplete ? 'currentDocument' : 'off',
-          }}
-        />
-      </Box>
+      {/* CodeMirror editor – height shrinks to give space to the uniforms panel when open */}
+      <Box
+        ref={cmRootRef}
+        onClick={() => viewRef.current?.focus()}
+        sx={{
+          flex: uniformsOpen ? undefined : 1,
+          height: uniformsOpen ? `${uniformsSplitRatio}%` : undefined,
+          overflow: 'hidden',
+          cursor: 'text',
+          '& .cm-editor': { height: '100%' },
+          '& .cm-scroller': { overflow: 'auto !important' },
+        }}
+      />
 
       {/* Resizable divider and uniforms panel */}
       {uniformsOpen && (

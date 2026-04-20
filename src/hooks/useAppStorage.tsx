@@ -3,6 +3,18 @@ import { DEFAULT_SHADER } from '../utility/shader/defaultShader'
 import { createContext, useContext } from 'react'
 
 // ---------------------------------------------------------------------------
+// Public types
+// ---------------------------------------------------------------------------
+
+export interface UserSample {
+  id: string
+  title: string
+  fileName: string
+  /** Base64-encoded audio file data */
+  audioData: string
+}
+
+// ---------------------------------------------------------------------------
 // Private key constants – no other file should reference these strings
 // ---------------------------------------------------------------------------
 
@@ -22,6 +34,7 @@ const KEYS = {
   warnOnLoadSaved: 'shader-playground:warn-on-load-saved',
   strudelAutocomplete: 'shader-playground:strudel-autocomplete',
   glslAutocomplete: 'shader-playground:glsl-autocomplete',
+  userSamples: 'shader-playground:user-samples',
 } as const
 
 // ---------------------------------------------------------------------------
@@ -43,6 +56,20 @@ export function saveStrudelCode(code: string): void {
 
 export function saveStrudelTitle(title: string): void {
   try { localStorage.setItem(KEYS.strudelTitle, title) } catch { /* quota exceeded */ }
+}
+
+export function getUserSamples(): UserSample[] {
+  try {
+    const raw = localStorage.getItem(KEYS.userSamples)
+    if (!raw) return []
+    return JSON.parse(raw) as UserSample[]
+  } catch {
+    return []
+  }
+}
+
+export function saveUserSamples(samples: UserSample[]): void {
+  try { localStorage.setItem(KEYS.userSamples, JSON.stringify(samples)) } catch { /* quota exceeded */ }
 }
 
 // ---------------------------------------------------------------------------
@@ -96,6 +123,8 @@ export interface AppStorageReturn {
   setStrudelAutocomplete: (v: boolean) => void
   glslAutocomplete: boolean
   setGlslAutocomplete: (v: boolean) => void
+  userSamples: UserSample[]
+  setUserSamples: (v: UserSample[] | ((prev: UserSample[]) => UserSample[])) => void
 }
 
 const AppStorageContext = createContext<AppStorageReturn | null>(null)
@@ -113,30 +142,32 @@ export const AppStorageProvider = ({children}: {children: React.ReactNode}) => {
   const [warnOnLoadSaved, setWarnOnLoadSaved] = useLocalStorage(KEYS.warnOnLoadSaved, true)
   const [strudelAutocomplete, setStrudelAutocomplete] = useLocalStorage(KEYS.strudelAutocomplete, true)
   const [glslAutocomplete, setGlslAutocomplete] = useLocalStorage(KEYS.glslAutocomplete, true)
+  const [userSamples, setUserSamples] = useLocalStorage<UserSample[]>(KEYS.userSamples, [])
 
   return (
-<AppStorageContext.Provider value={{
-theme, setTheme,
-vimMode, setVimMode,
-volume, setVolume,
-muted, setMuted,
-immersiveOpacity, setImmersiveOpacity,
-fontSize, setFontSize,
-warnOnOverwrite, setWarnOnOverwrite,
-warnOnLoadExample, setWarnOnLoadExample,
-warnOnLoadSaved, setWarnOnLoadSaved,
-strudelAutocomplete, setStrudelAutocomplete,
-glslAutocomplete, setGlslAutocomplete,
-}}>
-{children}
-</AppStorageContext.Provider>
-)
+		<AppStorageContext.Provider value={{
+			theme, setTheme,
+			vimMode, setVimMode,
+			volume, setVolume,
+			muted, setMuted,
+			immersiveOpacity, setImmersiveOpacity,
+			fontSize, setFontSize,
+			warnOnOverwrite, setWarnOnOverwrite,
+			warnOnLoadExample, setWarnOnLoadExample,
+			warnOnLoadSaved, setWarnOnLoadSaved,
+			strudelAutocomplete, setStrudelAutocomplete,
+			glslAutocomplete, setGlslAutocomplete,
+			userSamples, setUserSamples,
+		}}>
+			{children}
+		</AppStorageContext.Provider>
+	)
 }
 
 export const useAppStorage = () => {
-const context = useContext(AppStorageContext)
-if (!context) {
-throw new Error('useAppStorage must be used within an AppStorageProvider')
-}
-return context
+	const context = useContext(AppStorageContext)
+	if (!context) {
+		throw new Error('useAppStorage must be used within an AppStorageProvider')
+	}
+	return context
 }

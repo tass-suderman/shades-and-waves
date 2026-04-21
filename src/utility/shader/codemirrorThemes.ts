@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// CodeMirror 6 themes for the GLSL editor
+// CodeMirror 6 theme for the GLSL editor
 // ---------------------------------------------------------------------------
 
 import { EditorView } from '@codemirror/view'

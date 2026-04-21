@@ -49,7 +49,7 @@ note("c3 [e3 g3] b3 [g3 e3]").sound("sawtooth").lpf(800).lpenv(2).slow(2)`
 
 const DEFAULT_STRUDEL_TITLE = 'Strudel Pattern'
 
-// Map app theme name to CodeMirror / Strudel editor theme
+// CodeMirror / Strudel editor theme
 const STRUDEL_THEME = 'tokyoNight'
 
 export interface StrudelPaneHandle {

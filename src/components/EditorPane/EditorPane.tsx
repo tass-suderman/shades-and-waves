@@ -12,7 +12,6 @@ import UniformsPanel from '../UniformsPanel/UniformsPanel'
 import { glslLanguage, glslCompletions } from '../../utility/shader/glslCodemirror'
 import { getGlslThemeExtension } from '../../utility/shader/codemirrorThemes'
 import { saveGlslCode, saveGlslTitle, getInitialGlslCode, getInitialGlslTitle, useAppStorage } from '../../hooks/useAppStorage'
-import { useTheme } from '../../hooks/useTheme'
 
 const DEFAULT_SHADER_TITLE = 'Fragment Shader (GLSL)'
 
@@ -56,15 +55,12 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
   onRunRef.current = onRun
 
   const { vimMode, fontSize, glslAutocomplete } = useAppStorage()
-  const { currentTheme } = useTheme()
 
   // Capture initial values in refs so the mount effect only runs once
   const vimModeRef = useRef(vimMode)
   vimModeRef.current = vimMode
   const fontSizeRef = useRef(fontSize)
   fontSizeRef.current = fontSize
-  const themeNameRef = useRef(currentTheme.name)
-  themeNameRef.current = currentTheme.name
   const glslAutocompleteRef = useRef(glslAutocomplete)
   glslAutocompleteRef.current = glslAutocomplete
 
@@ -109,7 +105,7 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
         }),
 
         // Dynamic compartments (theme / vim / font size / autocomplete)
-        themeCompartment.current.of(getGlslThemeExtension(themeNameRef.current)),
+        themeCompartment.current.of(getGlslThemeExtension()),
         vimCompartment.current.of(vimModeRef.current ? vim() : []),
         fontSizeCompartment.current.of(
           EditorView.theme({ '&': { fontSize: `${fontSizeRef.current}px` } }),
@@ -173,17 +169,6 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
       ),
     })
   }, [fontSize])
-
-  // ---------------------------------------------------------------------------
-  // Reconfigure theme dynamically
-  // ---------------------------------------------------------------------------
-  useEffect(() => {
-    viewRef.current?.dispatch({
-      effects: themeCompartment.current.reconfigure(
-        getGlslThemeExtension(currentTheme.name),
-      ),
-    })
-  }, [currentTheme.name])
 
   // ---------------------------------------------------------------------------
   // Reconfigure autocomplete dynamically

@@ -1,10 +1,7 @@
 import { ImmersiveView } from '../ImmersiveView/ImmersiveView'
-import { MobileView } from '../MobileView/MobileView'
-import { DesktopView } from '../DesktopView/DesktopView'
 import { useCallback, useRef, useState } from 'react'
 import { useAppStorage, getInitialGlslCode } from '../../hooks/useAppStorage'
 import { useSavedContent } from '../../hooks/useSavedContent'
-import { useMediaQuery } from '@mui/material'
 import { type ViewMode } from '../../constants/tabConfigs'
 import { TabBar } from '../TabBar/TabBar'
 import { EditorContent } from '../EditorContent/EditorContent'
@@ -13,8 +10,6 @@ import { StrudelPaneHandle } from '../StrudelPane/StrudelPane'
 import { ShaderPaneHandle } from '../ShaderPane/ShaderPane'
 
 import { type EditorPaneHandle } from '../EditorPane/EditorPane'
-
-type DisplayMode = 'default' | 'immersive'
 
 interface ViewReducerProps {
 	shaderRef: React.RefObject<ShaderPaneHandle>
@@ -29,8 +24,6 @@ export const ViewReducer = ({
 	strudelRef,
 	editorRef,
 }: ViewReducerProps) => {
-  const [displayMode, setDisplayMode] = useState<DisplayMode>('default')
-  const [editorCollapsed, setEditorCollapsed] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('glsl')
   const [shaderSource, setShaderSource] = useState<string>(initialShaderCode)
   const [shaderError, setShaderError] = useState<string | null>(null)
@@ -100,51 +93,17 @@ export const ViewReducer = ({
 		/>
 	)
 
-  const handleToggleImmersive = useCallback(() => {
-    setDisplayMode(m => m === 'immersive' ? 'default' : 'immersive')
-  }, [])
-
-  const isMobile = useMediaQuery('(max-width: 600px)')
-
 	return (
 		<>
 			{overwriteDialog}
-			{displayMode === 'immersive' ? (
-				<ImmersiveView
-					shaderSource={shaderSource}
-					setShaderError={setShaderError}
-					handleToggleImmersive={handleToggleImmersive}
-					isMobile={isMobile}
-					outerContainerRef={outerContainerRef}
-					shaderRef={shaderRef}
-					tabBar={tabBar}
-					editorContent={editorContent}
-				/>
-			) : isMobile ? (
-				<MobileView
-					shaderSource={shaderSource}
-					setShaderError={setShaderError}
-					handleToggleImmersive={handleToggleImmersive}
-					editorCollapsed={editorCollapsed}
-					setEditorCollapsed={setEditorCollapsed}
-					outerContainerRef={outerContainerRef}
-					shaderRef={shaderRef}
-					tabBar={tabBar}
-					editorContent={editorContent}
-				/>
-			) : (
-				<DesktopView
-					shaderSource={shaderSource}
-					setShaderError={setShaderError}
-					handleToggleImmersive={handleToggleImmersive}
-					editorCollapsed={editorCollapsed}
-					setEditorCollapsed={setEditorCollapsed}
-					outerContainerRef={outerContainerRef}
-					shaderRef={shaderRef}
-					tabBar={tabBar}
-					editorContent={editorContent}
-				/>
-			)}
+			<ImmersiveView
+				shaderSource={shaderSource}
+				setShaderError={setShaderError}
+				outerContainerRef={outerContainerRef}
+				shaderRef={shaderRef}
+				tabBar={tabBar}
+				editorContent={editorContent}
+			/>
 		</>
 	)
 }

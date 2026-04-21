@@ -6,7 +6,6 @@ import { useStrudelAnalyzer } from '../../hooks/useStrudelAnalyzer'
 import { useStrudelAudioStream } from '../../hooks/useStrudelAudioStream'
 import { useMediaStreams } from '../../hooks/useMediaStreams'
 import { downloadBlob } from '../../utility/download'
-import { useAppStorage } from '../../hooks/useAppStorage'
 
 export interface ShaderPaneHandle {
   pause: () => void
@@ -22,13 +21,10 @@ interface ShaderPaneProps {
   onShaderError?: (error: string | null) => void
   editorCollapsed?: boolean
   onToggleEditorCollapsed?: () => void
-  isMobile?: boolean
   hideControls?: boolean
   onPlayStateChange?: (playing: boolean) => void
   onRecordingStateChange?: (recording: boolean) => void
   onFullscreenStateChange?: (fullscreen: boolean) => void
-  isImmersive?: boolean
-  onToggleImmersive?: () => void
 }
 
 export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane({
@@ -36,13 +32,10 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   onShaderError,
   editorCollapsed,
   onToggleEditorCollapsed,
-  isMobile,
   hideControls = false,
   onPlayStateChange,
   onRecordingStateChange,
   onFullscreenStateChange,
-  isImmersive,
-  onToggleImmersive,
 }: ShaderPaneProps, ref) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -54,8 +47,6 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
 	const { analyzer } = useStrudelAnalyzer()
 	const { strudelAudioStream } = useStrudelAudioStream()
 	const { webcamStream, audioStream } = useMediaStreams()
-
-	const { immersiveOpacity } = useAppStorage()
 
   useWebGL(canvasRef, {
     shaderSource,
@@ -192,7 +183,6 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
         flexDirection: 'column',
         height: '100%',
         bgcolor: '#000',
-				opacity: immersiveOpacity ?? '100%',
         position: 'relative',
       }}
     >
@@ -215,9 +205,6 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
           onToggleFullscreen={handleFullscreen}
           editorCollapsed={editorCollapsed}
           onToggleEditorCollapsed={onToggleEditorCollapsed}
-          isMobile={isMobile}
-          isImmersive={isImmersive}
-          onToggleImmersive={onToggleImmersive}
         />
       )}
     </Box>

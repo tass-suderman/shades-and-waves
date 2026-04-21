@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
 import { StrudelMirror } from '@strudel/codemirror'
 import { evalScope } from '@strudel/core'
@@ -10,7 +10,6 @@ import SoundsPanel from '../SoundsPanel/SoundsPanel'
 import { registerInstruments } from '../../utility/strudel/instruments'
 import { registerUserSampleSound, preloadUserSamples } from '../../utility/strudel/userSamples'
 import { saveStrudelCode, saveStrudelTitle, getInitialStrudelCode, getInitialStrudelTitle, useAppStorage } from '../../hooks/useAppStorage'
-import { useTheme } from '../../hooks/useTheme'
 // @strudel/codemirror ships no TypeScript declarations; augment the methods we use
 type StrudelMirrorExt = StrudelMirror & {
   changeSetting: (key: string, value: unknown) => void
@@ -50,11 +49,8 @@ note("c3 [e3 g3] b3 [g3 e3]").sound("sawtooth").lpf(800).lpenv(2).slow(2)`
 
 const DEFAULT_STRUDEL_TITLE = 'Strudel Pattern'
 
-// Map app theme names to CodeMirror / Strudel editor themes
-function mapToStrudelTheme(themeName: string): string {
-  if (themeName === 'kanagawa') return 'tokyoNight'
-  return 'vscodeDark'
-}
+// Map app theme name to CodeMirror / Strudel editor theme
+const STRUDEL_THEME = 'tokyoNight'
 
 export interface StrudelPaneHandle {
   play: () => void
@@ -74,8 +70,6 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   ref,
 ) {
 	const { vimMode, muted, volume, fontSize, userSamples, strudelAutocomplete } = useAppStorage()
-	const { currentTheme } = useTheme()
-	const themeName = useMemo(() => currentTheme.name, [currentTheme])
   const rootRef = useRef<HTMLDivElement>(null)
   const mirrorRef = useRef<StrudelMirrorExt | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -102,8 +96,6 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   // Keep latest props in refs so the mount effect can read them without re-running
   const vimModeRef = useRef(vimMode)
   vimModeRef.current = vimMode
-  const themeNameRef = useRef(themeName)
-  themeNameRef.current = themeName
   const volumeRef = useRef(volume)
   volumeRef.current = volume
   const mutedRef = useRef(muted)
@@ -226,7 +218,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
     mirrorRef.current.changeSetting('isTabIndentationEnabled', true)
     mirrorRef.current.changeSetting('fontSize', fontSizeRef.current)
     mirrorRef.current.changeSetting('isAutoCompletionEnabled', strudelAutocompleteRef.current)
-    mirrorRef.current.setTheme(mapToStrudelTheme(themeNameRef.current))
+    mirrorRef.current.setTheme(STRUDEL_THEME)
     return () => {
       // Persist the current code so it is restored if the component remounts
       // (e.g. when toggling immersive mode)
@@ -261,11 +253,6 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   useEffect(() => {
     mirrorRef.current?.changeSetting('keybindings', vimMode ? 'vim' : 'codemirror')
   }, [vimMode])
-
-  // Apply the CodeMirror theme whenever the app theme changes
-  useEffect(() => {
-    mirrorRef.current?.setTheme(mapToStrudelTheme(themeName))
-  }, [themeName])
 
   // Apply volume / mute to the Strudel GainNode whenever either changes
   useEffect(() => {

@@ -13,8 +13,6 @@ export interface ImmersiveViewProps {
 	editorContent: React.ReactNode
 	shaderSource: string
 	setShaderError: (error: string | null) => void
-	isMobile: boolean
-	handleToggleImmersive: () => void
 }
 
 export const ImmersiveView = ({
@@ -24,8 +22,6 @@ export const ImmersiveView = ({
 	editorContent,
 	shaderSource,
 	setShaderError,
-	isMobile,
-	handleToggleImmersive,
 }: ImmersiveViewProps) => {
   const [immersiveShaderPlaying, setImmersiveShaderPlaying] = useState(true)
   const [immersiveShaderRecording, setImmersiveShaderRecording] = useState(false)
@@ -72,7 +68,6 @@ export const ImmersiveView = ({
 					ref={shaderRef}
 					shaderSource={shaderSource}
 					onShaderError={setShaderError}
-					isMobile={isMobile}
 					hideControls
 					onPlayStateChange={setImmersiveShaderPlaying}
 					onRecordingStateChange={setImmersiveShaderRecording}
@@ -99,9 +94,6 @@ export const ImmersiveView = ({
 					onStartRecording={() => shaderRef.current?.startRecording()}
 					onStopRecording={() => shaderRef.current?.stopRecording()}
 					onToggleFullscreen={() => shaderRef.current?.toggleFullscreen()}
-					isMobile={isMobile}
-					isImmersive={true}
-					onToggleImmersive={handleToggleImmersive}
 				/>
 			</Box>
 		</Box>

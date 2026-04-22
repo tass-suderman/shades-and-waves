@@ -40,20 +40,45 @@ async function decodeUserSample(sample: UserSample): Promise<AudioBuffer | null>
 export function registerUserSampleSound(sample: UserSample): void {
   registerSound(
     sample.title,
-    (time, _value, onended) => {
+    (time, value, onended) => {
       const ctx = getAudioContext()
       if (!ctx) { onended(); return }
 
       const cached = bufferCache.get(sample.id)
       if (cached && cached.ctx === ctx) {
+        const buffer = cached.buffer
+
+        // Read playback parameters from the Strudel hap value
+        const speed = typeof value.speed === 'number' ? value.speed : 1
+        const begin = typeof value.begin === 'number' ? Math.max(0, Math.min(1, value.begin)) : 0
+        const end = typeof value.end === 'number' ? Math.max(0, Math.min(1, value.end)) : 1
+        const gain = typeof value.gain === 'number' ? value.gain : 1
+        const loop = Boolean(value.loop)
+
         const source = ctx.createBufferSource()
-        source.buffer = cached.buffer
+        source.buffer = buffer
+        source.playbackRate.value = Math.abs(speed)
+        source.loop = loop
+
+        // Convert begin/end fractions to buffer-time seconds for source.start()
+        const offset = begin * buffer.duration
+        const playDuration = Math.max(0, end - begin) * buffer.duration
+        if (loop) {
+          source.loopStart = offset
+          source.loopEnd = offset + playDuration
+        }
+
         const out = ctx.createGain()
-        out.gain.value = 1
+        out.gain.value = gain
         source.connect(out)
         source.onended = onended
-        source.start(time)
-        return { node: out }
+        source.start(time, offset, loop ? undefined : playDuration)
+        return {
+          node: out,
+          stop: (releaseTime: number) => {
+            try { source.stop(releaseTime) } catch { /* already stopped */ }
+          },
+        }
       }
 
       // Buffer not yet decoded – kick off decoding and call onended so

@@ -50,7 +50,8 @@ export function registerUserSampleBank(title: string, bank: UserSample[]): void 
       const ctx = getAudioContext()
       if (!ctx) { onended(); return }
 
-      // Pick the sample by index (the `:n` selector in mini notation sets value.n)
+      // Pick the sample by index (the `:n` selector in mini notation sets value.n).
+      // Double-modulo makes the index wrap correctly for both positive and negative n.
       const rawN = typeof value.n === 'number' ? Math.floor(value.n) : 0
       const n = ((rawN % bank.length) + bank.length) % bank.length
       const sample = bank[n]
@@ -93,7 +94,12 @@ export function registerUserSampleBank(title: string, bank: UserSample[]): void 
         return {
           node: out,
           stop: (releaseTime: number) => {
-            try { source.stop(releaseTime) } catch { /* already stopped */ }
+            try { source.stop(releaseTime) } catch (err) {
+              // stop() throws if the node has already stopped naturally; ignore that case.
+              if (!(err instanceof DOMException && err.name === 'InvalidStateError')) {
+                console.warn('[shades-and-waves] Unexpected error stopping sample source', err)
+              }
+            }
           },
         }
       }

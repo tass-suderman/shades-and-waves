@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
@@ -135,6 +135,17 @@ export default function SoundsPanel() {
     </Box>
   )
 
+  // Group uploaded samples by title so banks are displayed together
+  const sampleBanks = useMemo(() => {
+    const banks = new Map<string, UserSample[]>()
+    for (const sample of userSamples) {
+      const group = banks.get(sample.title) ?? []
+      group.push(sample)
+      banks.set(sample.title, group)
+    }
+    return [...banks.entries()]
+  }, [userSamples])
+
   return (
     <>
       <input
@@ -159,59 +170,76 @@ export default function SoundsPanel() {
                 >
                   Uploaded samples
                 </Typography>
-                {userSamples.map(sample => (
-                  <Box
-                    key={sample.id}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      py: 0.25,
-                    }}
-                  >
-                    <Tooltip title="Sound name (use in .sound(&quot;…&quot;))">
-                      <InputBase
-                        value={sample.title}
-                        onChange={e => handleTitleChange(sample.id, e.target.value)}
-                        inputProps={{ 'aria-label': `Sample title for ${sample.fileName}` }}
+                {sampleBanks.map(([bankTitle, bankSamples]) => (
+                  <Box key={bankTitle} sx={{ mb: 0.5 }}>
+                    {bankSamples.map((sample, bankIndex) => (
+                      <Box
+                        key={sample.id}
                         sx={{
-                          bgcolor: 'background.button',
-                          px: 0.75,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
                           py: 0.25,
-                          borderRadius: 0.5,
-                          fontSize: '0.8rem',
-                          fontFamily: 'monospace',
-                          color: '#9cdcfe',
-                          minWidth: 80,
-                          flex: '0 1 auto',
-                          '& input': { p: 0, cursor: 'text' },
                         }}
-                      />
-                    </Tooltip>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'textColor.muted',
-                        fontFamily: 'monospace',
-                        flex: 1,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        minWidth: 0,
-                      }}
-                    >
-                      {sample.fileName}
-                    </Typography>
-                    <Tooltip title="Delete sample">
-                      <IconButton
-                        size="small"
-                        aria-label={`Delete sample ${sample.title}`}
-                        onClick={() => setDeleteTarget(sample)}
-                        sx={{ color: 'textColor.muted', flexShrink: 0, p: 0.25 }}
                       >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                        <Tooltip title="Bank name — samples with the same name form a bank (use :0, :1, … to pick)">
+                          <InputBase
+                            value={sample.title}
+                            onChange={e => handleTitleChange(sample.id, e.target.value)}
+                            inputProps={{ 'aria-label': `Sample title for ${sample.fileName}` }}
+                            sx={{
+                              bgcolor: 'background.button',
+                              px: 0.75,
+                              py: 0.25,
+                              borderRadius: 0.5,
+                              fontSize: '0.8rem',
+                              fontFamily: 'monospace',
+                              color: '#9cdcfe',
+                              minWidth: 80,
+                              flex: '0 1 auto',
+                              '& input': { p: 0, cursor: 'text' },
+                            }}
+                          />
+                        </Tooltip>
+                        {bankSamples.length > 1 && (
+                          <Typography
+                            component="span"
+                            sx={{
+                              fontSize: '0.75rem',
+                              fontFamily: 'monospace',
+                              color: 'textColor.muted',
+                              flexShrink: 0,
+                            }}
+                          >
+                            :{bankIndex}
+                          </Typography>
+                        )}
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: 'textColor.muted',
+                            fontFamily: 'monospace',
+                            flex: 1,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            minWidth: 0,
+                          }}
+                        >
+                          {sample.fileName}
+                        </Typography>
+                        <Tooltip title="Delete sample">
+                          <IconButton
+                            size="small"
+                            aria-label={`Delete sample ${sample.title}${bankSamples.length > 1 ? `:${bankIndex}` : ''}`}
+                            onClick={() => setDeleteTarget(sample)}
+                            sx={{ color: 'textColor.muted', flexShrink: 0, p: 0.25 }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    ))}
                   </Box>
                 ))}
               </Box>
@@ -240,6 +268,9 @@ export default function SoundsPanel() {
             sx={{ color: 'textColor.muted', display: 'block', mt: 1 }}
           >
             Use with <code style={{ color: '#9cdcfe' }}>.sound("name")</code> in your pattern.
+            Give multiple samples the same name to create a bank — address them with{' '}
+            <code style={{ color: '#9cdcfe' }}>.sound("name:0")</code>,{' '}
+            <code style={{ color: '#9cdcfe' }}>.sound("name:1")</code>, etc.
           </Typography>
         }
       />

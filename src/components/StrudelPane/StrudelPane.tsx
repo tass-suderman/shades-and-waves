@@ -8,7 +8,7 @@ import EditorHeader from '../EditorHeader/EditorHeader'
 import StrudelError from '../StrudelError/StrudelError'
 import SoundsPanel from '../SoundsPanel/SoundsPanel'
 import { registerInstruments } from '../../utility/strudel/instruments'
-import { registerUserSampleSound, preloadUserSamples } from '../../utility/strudel/userSamples'
+import { registerUserSampleBank, preloadUserSamples } from '../../utility/strudel/userSamples'
 import { saveStrudelCode, saveStrudelTitle, getInitialStrudelCode, getInitialStrudelTitle, useAppStorage } from '../../hooks/useAppStorage'
 import { useStrudelSettings } from '../../hooks/useStrudelSettings'
 import { useTheme } from '../../hooks/useTheme'
@@ -257,10 +257,17 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
     return () => document.removeEventListener('visibilitychange', onHide)
   }, [saveCode])
 
-  // Register user-uploaded samples with Strudel whenever the list changes
+  // Register user-uploaded samples with Strudel whenever the list changes.
+  // Samples that share the same title form a bank addressable with :n notation.
   useEffect(() => {
+    const banks = new Map<string, typeof userSamples>()
     for (const sample of userSamples) {
-      registerUserSampleSound(sample)
+      const group = banks.get(sample.title) ?? []
+      group.push(sample)
+      banks.set(sample.title, group)
+    }
+    for (const [title, samples] of banks) {
+      registerUserSampleBank(title, samples)
     }
     // Eagerly decode buffers once the AudioContext becomes available
     const ctx = getAudioContext()

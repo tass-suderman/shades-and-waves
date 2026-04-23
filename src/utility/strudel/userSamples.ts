@@ -33,16 +33,27 @@ async function decodeUserSample(sample: UserSample): Promise<AudioBuffer | null>
 }
 
 /**
- * Register a user-uploaded sample with Strudel so it can be used via
- * `.sound("title")` in patterns. Call this whenever a sample is added or
- * its title changes.
+ * Register a bank of user-uploaded samples under a single name so they can
+ * be addressed with `:n` notation in patterns, e.g. `.sound("kick:0")`.
+ *
+ * All samples in `bank` share the same `title`.  When the bank contains only
+ * one sample the `:0` suffix is optional – `.sound("kick")` still works.
+ *
+ * Call this whenever the list of samples for a given title changes.
  */
-export function registerUserSampleSound(sample: UserSample): void {
+export function registerUserSampleBank(title: string, bank: UserSample[]): void {
+  if (bank.length === 0) return
+
   registerSound(
-    sample.title,
+    title,
     (time, value, onended) => {
       const ctx = getAudioContext()
       if (!ctx) { onended(); return }
+
+      // Pick the sample by index (the `:n` selector in mini notation sets value.n)
+      const rawN = typeof value.n === 'number' ? Math.floor(value.n) : 0
+      const n = ((rawN % bank.length) + bank.length) % bank.length
+      const sample = bank[n]
 
       const cached = bufferCache.get(sample.id)
       if (cached && cached.ctx === ctx) {
@@ -62,13 +73,16 @@ export function registerUserSampleSound(sample: UserSample): void {
         source.playbackRate.value = Math.abs(speed)
         source.loop = loop
 
-        // Convert begin/end fractions to buffer-time seconds for source.start()
+        // offset is buffer-time (seconds into the source buffer).
+        // duration for source.start() is output/wall-clock time, so divide by speed.
         const offset = begin * buffer.duration
-        const playDuration = Math.max(0, end - begin) * buffer.duration
+        const sliceDuration = Math.max(0, end - begin) * buffer.duration
+        const playDuration = sliceDuration / Math.abs(speed)
+
         // Only set loop bounds when the range is valid (loopStart must be < loopEnd)
-        if (loop && playDuration > 0) {
+        if (loop && sliceDuration > 0) {
           source.loopStart = offset
-          source.loopEnd = offset + playDuration
+          source.loopEnd = offset + sliceDuration
         }
 
         const out = ctx.createGain()

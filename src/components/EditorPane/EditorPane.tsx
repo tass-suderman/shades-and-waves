@@ -12,7 +12,7 @@ import { glslLanguage, glslCompletions } from '../../utility/shader/glslCodemirr
 import { getGlslThemeExtension } from '../../utility/shader/codemirrorThemes'
 import { saveGlslCode, saveGlslTitle, getInitialGlslCode, getInitialGlslTitle } from '../../hooks/useAppStorage'
 import { useGlslEditorSettings } from '../../hooks/useGlslEditorSettings'
-import { DEFAULT_SHADER_TITLE } from '../../constants/editorConstants'
+import { DEFAULT_SHADER_TITLE } from '../../utility/shader/defaults'
 
 interface EditorPaneProps {
   onRun: (code: string) => void

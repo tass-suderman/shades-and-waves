@@ -11,7 +11,7 @@ import { registerUserSampleSound, preloadUserSamples } from '../../utility/strud
 import { saveStrudelCode, saveStrudelTitle, getInitialStrudelCode, getInitialStrudelTitle, useAppStorage } from '../../hooks/useAppStorage'
 import { useStrudelSettings } from '../../hooks/useStrudelSettings'
 import { useTheme } from '../../hooks/useTheme'
-import { DEFAULT_STRUDEL_CODE, DEFAULT_STRUDEL_TITLE } from '../../constants/editorConstants'
+import { DEFAULT_STRUDEL_CODE, DEFAULT_STRUDEL_TITLE } from '../../utility/strudel/defaults'
 // @strudel/codemirror ships no TypeScript declarations; augment the methods we use
 type StrudelMirrorExt = StrudelMirror & {
   changeSetting: (key: string, value: unknown) => void
@@ -69,8 +69,8 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   { onAnalyserReady, onAudioStreamReady, onSave },
   ref,
 ) {
-	const { muted, volume, userSamples } = useAppStorage()
-	const { strudelTheme } = useTheme()
+  const { muted, volume, userSamples } = useAppStorage()
+  const { strudelTheme } = useTheme()
   const rootRef = useRef<HTMLDivElement>(null)
   const mirrorRef = useRef<StrudelMirrorExt | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)

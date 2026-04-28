@@ -1,7 +1,7 @@
 /**
  * Synthesized TR-909 drum sounds and TB-303 acid bass for Strudel.
  *
- * Drums registered (use with `.s()`):
+ * Drums registered (use with `.s()` or `.sound()`):
  *   bd909  – bass drum (kick)
  *   sd909  – snare drum
  *   cp909  – clap
@@ -10,6 +10,9 @@
  *   rd909  – ride cymbal
  *   ht909  – high tom
  *   lt909  – low tom
+ *
+ * The same drums are also registered under the bank format so you can use:
+ *   sound("bd sd cp").bank("909")
  *
  * Bass synth registered (use with `.s()` or `.sound()`):
  *   acid303 – sawtooth oscillator tuned to the played note.
@@ -171,126 +174,108 @@ function makeDrumOut(ctx: AudioContext, gain: number): GainNode {
   return out
 }
 
+type SoundHandler = (time: number, value: StrudelValue, onended: () => void) => { node: GainNode } | undefined
+
+/**
+ * Register a sound handler under multiple names at once.
+ * Used to register each drum under both the legacy name (e.g. `bd909`) and
+ * the bank-prefixed name (e.g. `909_bd`) so that `sound("bd").bank("909")`
+ * works alongside the original `sound("bd909")`.
+ */
+function registerSoundAlias(names: string[], handler: SoundHandler) {
+  for (const name of names) {
+    registerSound(name, handler, { type: 'synth', prebake: true })
+  }
+}
+
 export function registerInstruments() {
   // ── TR-909 bass drum ─────────────────────────────────────────────────────
-  registerSound(
-    'bd909',
-    (time: number, value: StrudelValue, onended: () => void) => {
-      const ctx = getAudioContext()
-      if (!ctx) { onended(); return }
-      const gain = (value.gain as number) ?? 1
-      const out = makeDrumOut(ctx, 1)
-      synthKick(ctx, time, gain, out)
-      setTimeout(onended, 600)
-      return { node: out }
-    },
-    { type: 'synth', prebake: true },
-  )
+  registerSoundAlias(['bd909', '909_bd'], (time, value, onended) => {
+    const ctx = getAudioContext()
+    if (!ctx) { onended(); return }
+    const gain = (value.gain as number) ?? 1
+    const out = makeDrumOut(ctx, 1)
+    synthKick(ctx, time, gain, out)
+    setTimeout(onended, 600)
+    return { node: out }
+  })
 
   // ── TR-909 snare drum ────────────────────────────────────────────────────
-  registerSound(
-    'sd909',
-    (time: number, value: StrudelValue, onended: () => void) => {
-      const ctx = getAudioContext()
-      if (!ctx) { onended(); return }
-      const gain = (value.gain as number) ?? 1
-      const out = makeDrumOut(ctx, 1)
-      synthSnare(ctx, time, gain, out)
-      setTimeout(onended, 280)
-      return { node: out }
-    },
-    { type: 'synth', prebake: true },
-  )
+  registerSoundAlias(['sd909', '909_sd'], (time, value, onended) => {
+    const ctx = getAudioContext()
+    if (!ctx) { onended(); return }
+    const gain = (value.gain as number) ?? 1
+    const out = makeDrumOut(ctx, 1)
+    synthSnare(ctx, time, gain, out)
+    setTimeout(onended, 280)
+    return { node: out }
+  })
 
   // ── TR-909 clap ──────────────────────────────────────────────────────────
-  registerSound(
-    'cp909',
-    (time: number, value: StrudelValue, onended: () => void) => {
-      const ctx = getAudioContext()
-      if (!ctx) { onended(); return }
-      const gain = (value.gain as number) ?? 1
-      const out = makeDrumOut(ctx, 1)
-      synthClap(ctx, time, gain, out)
-      setTimeout(onended, 250)
-      return { node: out }
-    },
-    { type: 'synth', prebake: true },
-  )
+  registerSoundAlias(['cp909', '909_cp'], (time, value, onended) => {
+    const ctx = getAudioContext()
+    if (!ctx) { onended(); return }
+    const gain = (value.gain as number) ?? 1
+    const out = makeDrumOut(ctx, 1)
+    synthClap(ctx, time, gain, out)
+    setTimeout(onended, 250)
+    return { node: out }
+  })
 
   // ── TR-909 closed hi-hat ─────────────────────────────────────────────────
-  registerSound(
-    'ch909',
-    (time: number, value: StrudelValue, onended: () => void) => {
-      const ctx = getAudioContext()
-      if (!ctx) { onended(); return }
-      const gain = (value.gain as number) ?? 1
-      const out = makeDrumOut(ctx, 1)
-      synthHiHat(ctx, time, gain, false, out)
-      setTimeout(onended, 120)
-      return { node: out }
-    },
-    { type: 'synth', prebake: true },
-  )
+  registerSoundAlias(['ch909', '909_ch'], (time, value, onended) => {
+    const ctx = getAudioContext()
+    if (!ctx) { onended(); return }
+    const gain = (value.gain as number) ?? 1
+    const out = makeDrumOut(ctx, 1)
+    synthHiHat(ctx, time, gain, false, out)
+    setTimeout(onended, 120)
+    return { node: out }
+  })
 
   // ── TR-909 open hi-hat ───────────────────────────────────────────────────
-  registerSound(
-    'oh909',
-    (time: number, value: StrudelValue, onended: () => void) => {
-      const ctx = getAudioContext()
-      if (!ctx) { onended(); return }
-      const gain = (value.gain as number) ?? 1
-      const out = makeDrumOut(ctx, 1)
-      synthHiHat(ctx, time, gain, true, out)
-      setTimeout(onended, 400)
-      return { node: out }
-    },
-    { type: 'synth', prebake: true },
-  )
+  registerSoundAlias(['oh909', '909_oh'], (time, value, onended) => {
+    const ctx = getAudioContext()
+    if (!ctx) { onended(); return }
+    const gain = (value.gain as number) ?? 1
+    const out = makeDrumOut(ctx, 1)
+    synthHiHat(ctx, time, gain, true, out)
+    setTimeout(onended, 400)
+    return { node: out }
+  })
 
   // ── TR-909 ride cymbal ───────────────────────────────────────────────────
-  registerSound(
-    'rd909',
-    (time: number, value: StrudelValue, onended: () => void) => {
-      const ctx = getAudioContext()
-      if (!ctx) { onended(); return }
-      const gain = (value.gain as number) ?? 1
-      const out = makeDrumOut(ctx, 1)
-      synthRide(ctx, time, gain, out)
-      setTimeout(onended, 1200)
-      return { node: out }
-    },
-    { type: 'synth', prebake: true },
-  )
+  registerSoundAlias(['rd909', '909_rd'], (time, value, onended) => {
+    const ctx = getAudioContext()
+    if (!ctx) { onended(); return }
+    const gain = (value.gain as number) ?? 1
+    const out = makeDrumOut(ctx, 1)
+    synthRide(ctx, time, gain, out)
+    setTimeout(onended, 1200)
+    return { node: out }
+  })
 
   // ── TR-909 high tom ──────────────────────────────────────────────────────
-  registerSound(
-    'ht909',
-    (time: number, value: StrudelValue, onended: () => void) => {
-      const ctx = getAudioContext()
-      if (!ctx) { onended(); return }
-      const gain = (value.gain as number) ?? 1
-      const out = makeDrumOut(ctx, 1)
-      synthTom(ctx, time, gain, true, out)
-      setTimeout(onended, 250)
-      return { node: out }
-    },
-    { type: 'synth', prebake: true },
-  )
+  registerSoundAlias(['ht909', '909_ht'], (time, value, onended) => {
+    const ctx = getAudioContext()
+    if (!ctx) { onended(); return }
+    const gain = (value.gain as number) ?? 1
+    const out = makeDrumOut(ctx, 1)
+    synthTom(ctx, time, gain, true, out)
+    setTimeout(onended, 250)
+    return { node: out }
+  })
 
   // ── TR-909 low tom ───────────────────────────────────────────────────────
-  registerSound(
-    'lt909',
-    (time: number, value: StrudelValue, onended: () => void) => {
-      const ctx = getAudioContext()
-      if (!ctx) { onended(); return }
-      const gain = (value.gain as number) ?? 1
-      const out = makeDrumOut(ctx, 1)
-      synthTom(ctx, time, gain, false, out)
-      setTimeout(onended, 320)
-      return { node: out }
-    },
-    { type: 'synth', prebake: true },
-  )
+  registerSoundAlias(['lt909', '909_lt'], (time, value, onended) => {
+    const ctx = getAudioContext()
+    if (!ctx) { onended(); return }
+    const gain = (value.gain as number) ?? 1
+    const out = makeDrumOut(ctx, 1)
+    synthTom(ctx, time, gain, false, out)
+    setTimeout(onended, 320)
+    return { node: out }
+  })
 
   // ── TB-303 acid bass ─────────────────────────────────────────────────────
   // Sawtooth oscillator pitched to the hap note.

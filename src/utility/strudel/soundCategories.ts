@@ -6,6 +6,7 @@ export interface SoundCategory {
   label: string
   sounds: readonly string[]
   aliases?: Record<string, string>
+  note?: string
 }
 
 export const SOUND_CATEGORIES: readonly SoundCategory[] = [
@@ -30,6 +31,7 @@ export const SOUND_CATEGORIES: readonly SoundCategory[] = [
   {
     label: 'TR-909 drums (synthesised)',
     sounds: ['bd909', 'sd909', 'cp909', 'ch909', 'oh909', 'rd909', 'ht909', 'lt909'],
+    note: 'Also usable as sound("bd sd cp").bank("909")',
   },
   {
     label: 'TB-303 acid bass (synthesised)',

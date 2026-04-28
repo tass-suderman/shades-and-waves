@@ -132,6 +132,18 @@ export default function SoundsPanel() {
           Aliases: {Object.entries(cat.aliases).map(([a, b]) => `${a} → ${b}`).join(', ')}
         </Typography>
       )}
+      {cat.note && (
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'textColor.muted',
+            display: 'block',
+            mt: 0.5,
+          }}
+        >
+          {cat.note}
+        </Typography>
+      )}
     </Box>
   )
 

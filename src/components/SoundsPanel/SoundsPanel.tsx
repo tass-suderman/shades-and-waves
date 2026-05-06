@@ -60,6 +60,8 @@ export default function SoundsPanel() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [deleteTarget, setDeleteTarget] = useState<UserSample | null>(null)
   const [snackbarMessage, setSnackbarMessage] = useState<string | null>(null)
+  /** Draft titles typed by the user but not yet committed (keyed by sample id). */
+  const [draftTitles, setDraftTitles] = useState<Record<string, string>>({})
 
   const handleUploadClick = () => fileInputRef.current?.click()
 
@@ -105,23 +107,41 @@ export default function SoundsPanel() {
     }
   }
 
+  /** Update the draft title while the user is typing (no validation yet). */
   const handleTitleChange = (id: string, newTitle: string) => {
-    const trimmed = newTitle.trim()
-    if (!trimmed) return
+    setDraftTitles(prev => ({ ...prev, [id]: newTitle }))
+  }
 
-    // Check for conflicts with built-in sounds or other user samples
+  /** Commit the draft title when the input loses focus, with validation. */
+  const handleTitleBlur = (id: string) => {
+    const draft = draftTitles[id]
+    // Nothing to commit if the user never changed the title for this sample
+    if (draft === undefined) return
+
+    const clearDraft = () =>
+      setDraftTitles(prev => { const next = { ...prev }; delete next[id]; return next })
+
+    const trimmed = draft.trim()
+    if (!trimmed) {
+      setSnackbarMessage('Sample name cannot be empty')
+      clearDraft()
+      return
+    }
+
     const conflict =
       BUILTIN_SOUND_NAMES.has(trimmed) ||
       userSamples.some(s => s.id !== id && s.title === trimmed)
 
     if (conflict) {
       setSnackbarMessage(`"${trimmed}" is already taken – choose a different name`)
+      clearDraft()
       return
     }
 
     setUserSamples(prev =>
       prev.map(s => (s.id === id ? { ...s, title: trimmed } : s)),
     )
+    clearDraft()
   }
 
   const handleDeleteConfirm = () => {
@@ -211,8 +231,9 @@ export default function SoundsPanel() {
                   >
                     <Tooltip title="Sound name (use in .sound(&quot;…&quot;))">
                       <InputBase
-                        value={sample.title}
+                        value={draftTitles[sample.id] ?? sample.title}
                         onChange={e => handleTitleChange(sample.id, e.target.value)}
+                        onBlur={() => handleTitleBlur(sample.id)}
                         inputProps={{ 'aria-label': `Sample title for ${sample.fileName}` }}
                         sx={{
                           bgcolor: 'background.button',

@@ -119,7 +119,7 @@ export default function SoundsPanel() {
     if (draft === undefined) return
 
     const clearDraft = () =>
-      setDraftTitles(prev => { const next = { ...prev }; delete next[id]; return next })
+      setDraftTitles(prev => { const { [id]: _removed, ...next } = prev; return next })
 
     const trimmed = draft.trim()
     if (!trimmed) {

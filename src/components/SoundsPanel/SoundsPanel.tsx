@@ -15,6 +15,14 @@ import DeleteItemDialog from '../DeleteItemDialog/DeleteItemDialog'
 
 const MAX_SAMPLE_SIZE_BYTES = 5 * 1024 * 1024 // 5 MB
 
+/** All built-in sound names (sounds + aliases) from SOUND_CATEGORIES. */
+const BUILTIN_SOUND_NAMES: ReadonlySet<string> = new Set(
+  SOUND_CATEGORIES.flatMap(cat => [
+    ...cat.sounds,
+    ...Object.keys(cat.aliases ?? {}),
+  ]),
+)
+
 /** Strip extension from a file name to derive a default title. */
 function baseName(fileName: string): string {
   return fileName.replace(/\.[^.]+$/, '')
@@ -35,6 +43,17 @@ function fileToBase64(file: File): Promise<string> {
   })
 }
 
+/**
+ * Given a desired title and the set of already-taken names, return a unique
+ * title by appending "_1", "_2", … as needed.
+ */
+function uniqueTitle(desired: string, takenNames: Set<string>): string {
+  if (!takenNames.has(desired)) return desired
+  let n = 1
+  while (takenNames.has(`${desired}_${n}`)) n++
+  return `${desired}_${n}`
+}
+
 /** Inline sounds reference panel – shown in-pane instead of a modal. */
 export default function SoundsPanel() {
   const { userSamples, setUserSamples } = useAppStorage()
@@ -51,6 +70,12 @@ export default function SoundsPanel() {
 
     const newSamples: UserSample[] = []
     const skipped: string[] = []
+    // Build the set of taken names before processing files so that multiple
+    // files uploaded at once don't collide with each other either.
+    const takenNames = new Set<string>([
+      ...BUILTIN_SOUND_NAMES,
+      ...userSamples.map(s => s.title),
+    ])
     for (const file of files) {
       if (file.size > MAX_SAMPLE_SIZE_BYTES) {
         skipped.push(file.name)
@@ -58,9 +83,11 @@ export default function SoundsPanel() {
       }
       try {
         const audioData = await fileToBase64(file)
+        const title = uniqueTitle(baseName(file.name), takenNames)
+        takenNames.add(title)
         newSamples.push({
           id: crypto.randomUUID(),
-          title: baseName(file.name),
+          title,
           fileName: file.name,
           audioData,
         })
@@ -79,8 +106,21 @@ export default function SoundsPanel() {
   }
 
   const handleTitleChange = (id: string, newTitle: string) => {
+    const trimmed = newTitle.trim()
+    if (!trimmed) return
+
+    // Check for conflicts with built-in sounds or other user samples
+    const conflict =
+      BUILTIN_SOUND_NAMES.has(trimmed) ||
+      userSamples.some(s => s.id !== id && s.title === trimmed)
+
+    if (conflict) {
+      setSnackbarMessage(`"${trimmed}" is already taken – choose a different name`)
+      return
+    }
+
     setUserSamples(prev =>
-      prev.map(s => (s.id === id ? { ...s, title: newTitle } : s)),
+      prev.map(s => (s.id === id ? { ...s, title: trimmed } : s)),
     )
   }
 
@@ -207,7 +247,7 @@ export default function SoundsPanel() {
                         size="small"
                         aria-label={`Delete sample ${sample.title}`}
                         onClick={() => setDeleteTarget(sample)}
-                        sx={{ color: 'textColor.muted', flexShrink: 0, p: 0.25 }}
+                        sx={{ color: 'error.main', flexShrink: 0, p: 0.25 }}
                       >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
@@ -225,9 +265,9 @@ export default function SoundsPanel() {
               sx={{
                 textTransform: 'none',
                 fontSize: '0.75rem',
-                color: 'textColor.muted',
+                color: 'textColor.primary',
                 borderColor: 'border.faint',
-                '&:hover': { borderColor: 'textColor.muted' },
+                '&:hover': { borderColor: 'textColor.primary' },
               }}
             >
               Upload sample

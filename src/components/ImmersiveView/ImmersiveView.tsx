@@ -113,7 +113,7 @@ export const ImmersiveView = () => {
       />
       <Box
         ref={outerContainerRef}
-        sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}
+        sx={{ position: 'relative', display: 'flex', flexDirection: 'column', width: '100%', height: '100%', overflow: 'hidden' }}
       >
         {/* Layer 0 – Shader canvas, full viewport, behind everything */}
         <Box sx={{ position: 'absolute', inset: 0, zIndex: 0 }}>
@@ -126,49 +126,46 @@ export const ImmersiveView = () => {
             onFullscreenStateChange={setImmersiveShaderFullscreen}
           />
         </Box>
+        <Box sx={{ flexShrink: 0, zIndex: 2 }}>
+          <ThemeProvider theme={immersiveTheme}>
+            <ImmersiveTopBar viewMode={viewMode} setViewMode={setViewMode} strudelRef={strudelRef} editorRef={editorRef} />
+          </ThemeProvider>
+        </Box>
+        <Box sx={{ position: 'relative', flex: 1, minHeight: 0, zIndex: 1 }}>
 
-        {/* Layer 1 – Editor overlay + controls bar stacked in one flex column */}
-        <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          {/* Editor area – flex:1 so it fills space above the controls bar */}
-          <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <ThemeProvider theme={immersiveTheme}>
-              <EditorContent
-                viewMode={viewMode}
-                shaderError={shaderError}
-                editorRef={editorRef}
-                strudelRef={strudelRef}
-                setShaderSource={setShaderSource}
-                setViewMode={setViewMode}
-                setOverwritePending={setOverwritePending}
-                setOverwriteDialogOpen={setOverwriteDialogOpen}
-                setDontShowAgain={setDontShowAgain}
-                commitSave={commitSave}
-              />
-            </ThemeProvider>
+
+          {/* Layer 1 – Editor overlay + controls bar stacked in one flex column */}
+          <Box sx={{ position: 'absolute', inset: 0, zIndex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            {/* Editor area – flex:1 so it fills space above the controls bar */}
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <ThemeProvider theme={immersiveTheme}>
+                <EditorContent
+                  viewMode={viewMode}
+                  shaderError={shaderError}
+                  editorRef={editorRef}
+                  strudelRef={strudelRef}
+                  setShaderSource={setShaderSource}
+                  setViewMode={setViewMode}
+                  setOverwritePending={setOverwritePending}
+                  setOverwriteDialogOpen={setOverwriteDialogOpen}
+                  setDontShowAgain={setDontShowAgain}
+                  commitSave={commitSave}
+                />
+              </ThemeProvider>
+            </Box>
+
+            {/* Controls bar sits at the bottom and takes its natural height */}
+            <ShaderControls
+              isPlaying={immersiveShaderPlaying}
+              isRecording={immersiveShaderRecording}
+              isFullscreen={immersiveShaderFullscreen}
+              onTogglePlay={() => shaderRef.current?.togglePlay()}
+              onStartRecording={() => shaderRef.current?.startRecording()}
+              onStopRecording={() => shaderRef.current?.stopRecording()}
+              onToggleFullscreen={() => shaderRef.current?.toggleFullscreen()}
+            />
           </Box>
 
-          {/* Controls bar sits at the bottom and takes its natural height */}
-          <ShaderControls
-            isPlaying={immersiveShaderPlaying}
-            isRecording={immersiveShaderRecording}
-            isFullscreen={immersiveShaderFullscreen}
-            onTogglePlay={() => shaderRef.current?.togglePlay()}
-            onStartRecording={() => shaderRef.current?.startRecording()}
-            onStopRecording={() => shaderRef.current?.stopRecording()}
-            onToggleFullscreen={() => shaderRef.current?.toggleFullscreen()}
-          />
-        </Box>
-
-        {/* Layer 2 – Pills float over the editor, pointer-events passthrough on the wrapper */}
-        <Box sx={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2, pointerEvents: 'none' }}>
-          <ThemeProvider theme={immersiveTheme}>
-            <ImmersiveTopBar
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              strudelRef={strudelRef}
-              editorRef={editorRef}
-            />
-          </ThemeProvider>
         </Box>
       </Box>
     </>

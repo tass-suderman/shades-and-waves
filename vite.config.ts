@@ -1,11 +1,10 @@
 /// <reference types="vitest" />
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
-import { loadEnv } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   build: {
     rollupOptions: {
       preserveEntrySignatures: 'exports-only',
@@ -58,7 +57,7 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ],
-  base: loadEnv(mode, '.', 'VITE_').VITE_ASSET_BASE_URL || (mode !== 'development' ? 'https://shades-n-waves.tass.suderman.pro/' : '/'),
+  base: './',
   server: {
     port: 7456,
     strictPort: true,
@@ -71,4 +70,4 @@ export default defineConfig(({ mode }) => ({
     setupFiles: ['./src/test-setup.ts'],
     css: false,
   },
-}))
+})

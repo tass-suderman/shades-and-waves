@@ -347,7 +347,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
   }, [soundsSplitRatio])
 
   return (
-    <Box ref={soundsPaneRef} sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.panel', pt: '44px' }}>
+    <Box ref={soundsPaneRef} sx={{ display: 'flex', flexDirection: 'column', height: '100%', bgcolor: 'background.panel', pt: 1 }}>
       {/* Hidden file input for import */}
       <input
         ref={fileInputRef}

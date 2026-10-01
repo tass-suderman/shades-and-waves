@@ -241,7 +241,7 @@ export default forwardRef<EditorPaneHandle, EditorPaneProps>(function EditorPane
         flexDirection: 'column',
         height: '100%',
         bgcolor: 'background.panel',
-        pt: '44px',
+        pt: 1,
       }}
     >
       {/* Hidden file input for import */}

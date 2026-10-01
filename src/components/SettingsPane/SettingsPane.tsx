@@ -36,7 +36,7 @@ export default () => {
         bgcolor: 'background.panel',
         color: 'textColor.primary',
         overflow: 'auto',
-        pt: '44px',
+        pt: 1,
       }}
     >
       {/* Settings content */}

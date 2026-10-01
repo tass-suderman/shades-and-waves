@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { assetUrl } from '../../utility/assetUrl'
 import {
   Box,
   CircularProgress,
@@ -48,7 +49,7 @@ function ExampleSection({
   useEffect(() => {
     setListError(false)
     setLoading(true)
-    fetch(`${import.meta.env.BASE_URL}examples/${type}/index.json`)
+    fetch(assetUrl(`examples/${type}/index.json`))
       .then(r => r.json())
       .then((data: ExampleMeta[]) => { setExamples(data); setLoading(false) })
       .catch(() => { setListError(true); setLoading(false) })
@@ -139,7 +140,7 @@ export default function CombinedExamplesPanel({ onLoadGlsl, onLoadStrudel, embed
   const loadExample = (meta: ExampleMeta, type: ExampleType) => {
     setLoadError(false)
     const ext = type === 'glsl' ? 'glsl' : 'strudel'
-    fetch(`${import.meta.env.BASE_URL}examples/${type}/${meta.id}.${ext}`)
+    fetch(assetUrl(`examples/${type}/${meta.id}.${ext}`))
       .then(r => r.text())
       .then((content: string) => {
         if (type === 'glsl') onLoadGlsl(meta.title, content)

@@ -14,7 +14,7 @@ export default function AboutPane() {
           fontFamily: 'monospace',
           fontSize: '0.875rem',
           lineHeight: 1.7,
-				  pt: '44px',
+				  pt: 1,
         }}
       >
         <AboutPaneSection>

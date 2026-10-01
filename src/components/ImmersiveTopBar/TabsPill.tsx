@@ -15,7 +15,7 @@ const TabsPill = ({ viewMode, handleTabSelect, sx }: TabsPillProps) => {
         return (
           <Tooltip key={value} title={label} placement="bottom">
             <IconButton
-              size="small"
+              size="medium"
               onClick={() => handleTabSelect(value)}
               sx={{
                 color: isActive ? 'white' : 'rgba(255,255,255,0.4)',
@@ -25,7 +25,8 @@ const TabsPill = ({ viewMode, handleTabSelect, sx }: TabsPillProps) => {
                   color: 'white',
                   bgcolor: 'rgba(255,255,255,0.1)',
                 },
-                p: 0.5,
+                width: 36,
+                height: 36,
               }}
               aria-label={label}
               aria-pressed={isActive}

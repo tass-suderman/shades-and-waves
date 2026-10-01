@@ -48,10 +48,10 @@ const SavedActionsPill = () => {
   return (
     <Tooltip title="Export all saved content as zip">
       <IconButton
-        size="small"
+        size="medium"
         onClick={handleExportAll}
         aria-label="Export all saved content"
-        sx={{ color: 'textColor.primary', ':disabled': { color: 'textColor.primary', opacity: 0.25 } }}
+        sx={{ width: 36, height: 36, color: 'textColor.primary', ':disabled': { color: 'textColor.primary', opacity: 0.25 } }}
         disabled={!hasSavedContent}
         children={<Download fontSize="small" />}
       />

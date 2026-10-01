@@ -101,7 +101,7 @@ export default function SavedPane({
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.panel' }}>
       {/* Pill gap + optional export button */}
-      <Box sx={{ pt: '44px', display: 'flex', justifyContent: 'flex-end', px: 1, flexShrink: 0 }}>
+      <Box sx={{ pt: 1, display: 'flex', justifyContent: 'flex-end', px: 1, flexShrink: 0 }}>
       </Box>
 
       {/* Scrollable content */}

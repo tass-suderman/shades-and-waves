@@ -14,6 +14,7 @@ const baseSx: SxProps = {
   fontFamily: 'monospace',
   fontSize: '0.875rem',
   flex: 1,
+  minWidth: 0,
 }
 
 const inputBaseSx: SxProps = {
@@ -29,8 +30,10 @@ const titleSx: SxProps = {
 }
 
 const TitlePill = ({ title, onTitleChange, sx, tabConfig }: TitlePillProps) => {
+  const text = tabConfig.editableTitleLabel ? title : tabConfig.title
+  const contentLength = Math.max(8, Math.min(text.length, 'Saved Content & Examples'.length))
   return (
-    <Box sx={{ ...sx, width: 300, pointerEvents: 'auto', flexShrink: 0 }}>
+    <Box sx={{ ...sx, fontFamily: 'monospace', fontSize: '0.875rem', width: `calc(${contentLength}ch + 60px)`, maxWidth: 'calc(100vw - 208px)', minWidth: 0, pointerEvents: 'auto', flexShrink: 0 }}>
       <TitlePillIcon icon={tabConfig.icon} />
       {tabConfig.editableTitleLabel ? (
         <InputBase

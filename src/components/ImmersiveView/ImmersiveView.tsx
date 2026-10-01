@@ -65,6 +65,10 @@ export const ImmersiveView = () => {
     const opacityValue = immersiveToggle ? 100 : immersiveOpacity / 100
     document.documentElement.dataset.immersive = 'true'
     document.documentElement.style.setProperty('--pg-immersive-alpha', `${opacityValue}%`)
+    return () => {
+      delete document.documentElement.dataset.immersive
+      document.documentElement.style.removeProperty('--pg-immersive-alpha')
+    }
   }, [immersiveOpacity, immersiveToggle])
 
   useEffect(() => {
@@ -109,7 +113,7 @@ export const ImmersiveView = () => {
       />
       <Box
         ref={outerContainerRef}
-        sx={{ position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden' }}
+        sx={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}
       >
         {/* Layer 0 – Shader canvas, full viewport, behind everything */}
         <Box sx={{ position: 'absolute', inset: 0, zIndex: 0 }}>

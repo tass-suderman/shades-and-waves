@@ -48,7 +48,7 @@ function ExampleSection({
   useEffect(() => {
     setListError(false)
     setLoading(true)
-    fetch(`./examples/${type}/index.json`)
+    fetch(`${import.meta.env.BASE_URL}examples/${type}/index.json`)
       .then(r => r.json())
       .then((data: ExampleMeta[]) => { setExamples(data); setLoading(false) })
       .catch(() => { setListError(true); setLoading(false) })
@@ -139,7 +139,7 @@ export default function CombinedExamplesPanel({ onLoadGlsl, onLoadStrudel, embed
   const loadExample = (meta: ExampleMeta, type: ExampleType) => {
     setLoadError(false)
     const ext = type === 'glsl' ? 'glsl' : 'strudel'
-    fetch(`./examples/${type}/${meta.id}.${ext}`)
+    fetch(`${import.meta.env.BASE_URL}examples/${type}/${meta.id}.${ext}`)
       .then(r => r.text())
       .then((content: string) => {
         if (type === 'glsl') onLoadGlsl(meta.title, content)

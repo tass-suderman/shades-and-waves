@@ -1,10 +1,18 @@
 /// <reference types="vitest" />
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
+import { loadEnv } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  build: {
+    rollupOptions: {
+      preserveEntrySignatures: 'exports-only',
+      input: { index: 'index.html', spa: 'src/spa.tsx' },
+      output: { entryFileNames: (chunk) => chunk.name === 'spa' ? 'spa.js' : chunk.name === 'index' ? 'index.js' : 'assets/[name]-[hash].js' },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
@@ -50,9 +58,12 @@ export default defineConfig({
       },
     }),
   ],
-  base: './',
+  base: loadEnv(mode, '.', 'VITE_').VITE_ASSET_BASE_URL || (mode !== 'development' ? 'https://shades-n-waves.tass.suderman.pro/' : '/'),
   server: {
     port: 7456,
+    strictPort: true,
+    origin: 'http://localhost:7456',
+    cors: { origin: 'http://localhost:3000' },
   },
   test: {
     environment: 'jsdom',
@@ -60,4 +71,4 @@ export default defineConfig({
     setupFiles: ['./src/test-setup.ts'],
     css: false,
   },
-})
+}))

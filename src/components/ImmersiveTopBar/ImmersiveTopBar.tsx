@@ -229,13 +229,14 @@ export const ImmersiveTopBar = ({
       const titleWidth = titleRef.current?.offsetWidth ?? 0
       const groups = Array.from(controlsRef.current?.children ?? [])
       const controlsWidth = groups.reduce((width, group) => width + (group as HTMLElement).offsetWidth, 0) + Math.max(0, groups.length - 1) * 8
-      const brandWidth = 92 + (nameRef.current?.offsetWidth ?? 0)
+      const brandIconsWidth = openPlatformNavigation ? 84 : 36
+      const brandWidth = brandIconsWidth + 8 + (nameRef.current?.offsetWidth ?? 0)
       // Two 16px gaps separate the brand, title and controls.
       if (available >= titleWidth + 32 + 2 * Math.max(brandWidth, controlsWidth)) {
         setLayout('centered')
       } else if (available >= brandWidth + titleWidth + controlsWidth + 32) {
         setLayout('packed')
-      } else if (available >= 84 + titleWidth + controlsWidth + 32) {
+      } else if (available >= brandIconsWidth + titleWidth + controlsWidth + 32) {
         setLayout('compact')
       } else {
         setLayout('collapsed')
@@ -247,7 +248,7 @@ export const ImmersiveTopBar = ({
       if (ref.current) observer.observe(ref.current)
     })
     return () => observer.disconnect()
-  }, [viewMode, title])
+  }, [viewMode, title, openPlatformNavigation])
 
   useEffect(() => {
     if (!isCollapsed) setMobileMenuOpen(false)
@@ -262,14 +263,15 @@ export const ImmersiveTopBar = ({
         py: mobileMenuOpen ? 1.5 : 0,
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-          <IconButton
-            aria-label={openPlatformNavigation ? 'Open navigation' : 'Open pane menu'}
-            aria-expanded={openPlatformNavigation ? undefined : mobileMenuOpen}
-            onClick={() => openPlatformNavigation ? openPlatformNavigation() : setMobileMenuOpen(v => !v)}
-            sx={{ width: 40, height: 40, flexShrink: 0, border: '1px solid #957FB8', borderRadius: '12px', color: '#A4B9EF' }}
-          >
-            {!openPlatformNavigation && mobileMenuOpen ? <Close /> : <Menu />}
-          </IconButton>
+          {openPlatformNavigation && (
+            <IconButton
+              aria-label="Open navigation"
+              onClick={openPlatformNavigation}
+              sx={{ width: 40, height: 40, flexShrink: 0, border: '1px solid #957FB8', borderRadius: '12px', color: '#A4B9EF' }}
+            >
+              <Menu />
+            </IconButton>
+          )}
           <Box component="img" src={assetUrl('images/sunglasses-logo.png')} alt="" sx={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }} />
           <Typography
             ref={nameRef} component="span" variant="h6" noWrap aria-hidden={hideName || undefined}

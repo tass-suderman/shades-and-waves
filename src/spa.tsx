@@ -11,8 +11,6 @@ export async function mount({ domElement, onOpenNavigation }: { domElement: HTML
   setEmbeddedAssetMode(true)
   styleElement = document.createElement('style')
   styleElement.textContent = styles
-    .replace(/html, body, #root\s*\{[^}]*\}/, '')
-    .replace('*, *::before, *::after', ':where(#single-spa-app *), :where(#single-spa-app *::before), :where(#single-spa-app *::after)')
   document.head.appendChild(styleElement)
   try {
     root = createRoot(domElement)

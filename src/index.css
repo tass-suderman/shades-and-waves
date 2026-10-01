@@ -1,13 +1,10 @@
-*, *::before, *::after {
+/* Keep the embedded reset below component styles in specificity. */
+:where(#single-spa-app *),
+:where(#single-spa-app *::before),
+:where(#single-spa-app *::after) {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-html, body, #root {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
 }
 
 /* Monaco editor backgrounds – the editor inlines its own colours from the

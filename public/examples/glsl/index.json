@@ -3,5 +3,6 @@
   { "id": "kaleidoscope-camera", "title": "Kaleidoscope Camera", "aiGenerated": false },
   { "id": "plasma", "title": "Plasma Effect", "aiGenerated": true },
   { "id": "raymarched-sphere", "title": "Raymarched Sphere", "aiGenerated": true },
-  { "id": "neon-radial-spectrum", "title": "Neon Radial Spectrum", "aiGenerated": true }
+  { "id": "neon-radial-spectrum", "title": "Neon Radial Spectrum", "aiGenerated": true },
+  { "id": "audio-reactive-video", "title": "Audio Reactive Video", "aiGenerated": true }
 ]

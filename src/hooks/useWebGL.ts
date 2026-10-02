@@ -39,6 +39,8 @@ function createProgram(gl: WebGLRenderingContext, vertSrc: string, fragSrc: stri
 }
 
 interface UseWebGLOptions {
+  uploadedVideo?: HTMLVideoElement | null
+  uploadedAudioAnalyser?: AnalyserNode | null
   shaderSource: string
   /** Video stream for iChannel0 (webcam) */
   webcamStream: MediaStream | null
@@ -54,7 +56,7 @@ export function useWebGL(
   canvasRef: RefObject<HTMLCanvasElement>,
   options: UseWebGLOptions
 ) {
-  const { shaderSource, webcamStream, audioStream, strudelAnalyser, isPlaying, onError } = options
+  const { uploadedVideo, uploadedAudioAnalyser, shaderSource, webcamStream, audioStream, strudelAnalyser, isPlaying, onError } = options
   const glRef = useRef<WebGLRenderingContext | null>(null)
   const programRef = useRef<WebGLProgram | null>(null)
   const rafRef = useRef<number>(0)
@@ -67,6 +69,8 @@ export function useWebGL(
   const textureRef = useRef<WebGLTexture | null>(null)
   const texture1Ref = useRef<WebGLTexture | null>(null)
   const texture2Ref = useRef<WebGLTexture | null>(null)
+  const uploadTextures = useRef<(WebGLTexture | null)[]>([])
+  const uploadFft = useRef(new Uint8Array(1024))
   const analyserRef = useRef<AnalyserNode | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
 
@@ -146,6 +150,20 @@ export function useWebGL(
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
     texture2Ref.current = tex2
 
+    uploadTextures.current = [3, 4].map(() => {
+      const texture = gl.createTexture()
+      gl.bindTexture(gl.TEXTURE_2D, texture)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+      return texture
+    })
+    // Complete fallback textures and distinct sampler units, even without media.
+    ;[tex, tex1, tex2, ...uploadTextures.current].forEach(texture => {
+      gl.bindTexture(gl.TEXTURE_2D, texture)
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]))
+    })
     compileProgram(gl, shaderSource)
 
     return () => {
@@ -154,6 +172,7 @@ export function useWebGL(
         gl.deleteProgram(programRef.current)
         programRef.current = null
       }
+      uploadTextures.current.forEach(texture => gl.deleteTexture(texture))
       gl.deleteTexture(textureRef.current)
       gl.deleteTexture(texture1Ref.current)
       gl.deleteTexture(texture2Ref.current)
@@ -201,7 +220,7 @@ export function useWebGL(
     if (audioStream) {
       const audioCtx = new AudioContext()
       const analyser = audioCtx.createAnalyser()
-      analyser.fftSize = 256
+      analyser.fftSize = 2048
       const source = audioCtx.createMediaStreamSource(audioStream)
       source.connect(analyser)
       analyserRef.current = analyser
@@ -302,6 +321,31 @@ export function useWebGL(
       const frameLoc = gl.getUniformLocation(program, 'iFrame')
       if (frameLoc) gl.uniform1i(frameLoc, frameRef.current)
 
+      ;[textureRef.current, texture1Ref.current, texture2Ref.current, ...uploadTextures.current].forEach((texture, index) => {
+        gl.activeTexture(gl.TEXTURE0 + index)
+        gl.bindTexture(gl.TEXTURE_2D, texture)
+        gl.uniform1i(gl.getUniformLocation(program, `iChannel${index}`), index)
+      })
+      loc2f('iChannel3Resolution', uploadedVideo?.videoWidth || 1, uploadedVideo?.videoHeight || 1)
+      loc1f('iChannel1SampleRate', audioCtxRef.current?.sampleRate || 48000)
+      loc1f('iChannel2SampleRate', strudelAnalyser?.context.sampleRate || 48000)
+      loc1f('iChannel4SampleRate', uploadedAudioAnalyser?.context.sampleRate || 48000)
+      const videoReady = !!uploadedVideo && uploadedVideo.readyState >= 2
+      gl.uniform1i(gl.getUniformLocation(program, 'iChannel3Enabled'), videoReady ? 1 : 0)
+      if (videoReady) {
+        gl.activeTexture(gl.TEXTURE3)
+        gl.bindTexture(gl.TEXTURE_2D, uploadTextures.current[0])
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, uploadedVideo)
+      }
+      gl.uniform1i(gl.getUniformLocation(program, 'iChannel4Enabled'), uploadedAudioAnalyser ? 1 : 0)
+      if (uploadedAudioAnalyser) {
+        if (uploadFft.current.length !== uploadedAudioAnalyser.frequencyBinCount) uploadFft.current = new Uint8Array(uploadedAudioAnalyser.frequencyBinCount)
+        uploadedAudioAnalyser.getByteFrequencyData(uploadFft.current)
+        gl.activeTexture(gl.TEXTURE4)
+        gl.bindTexture(gl.TEXTURE_2D, uploadTextures.current[1])
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, uploadFft.current.length, 1, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, uploadFft.current)
+      }
+
       // iChannel0: webcam video
       const ch0EnabledLoc = gl.getUniformLocation(program, 'iChannel0Enabled')
       if (webcamStream && videoRef.current && videoRef.current.readyState >= 2) {
@@ -376,6 +420,9 @@ export function useWebGL(
     }
 
     rafRef.current = requestAnimationFrame(render)
-    return () => cancelAnimationFrame(rafRef.current)
-  }, [isPlaying, webcamStream, audioStream, strudelAnalyser, shaderSource, canvasRef])
+    return () => {
+      cancelAnimationFrame(rafRef.current)
+      elapsedAtPauseRef.current = (Date.now() - startTimeRef.current) / 1000
+    }
+  }, [isPlaying, webcamStream, audioStream, strudelAnalyser, uploadedVideo, uploadedAudioAnalyser, shaderSource, canvasRef])
 }

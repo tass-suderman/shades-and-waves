@@ -210,7 +210,7 @@ const StrudelPane = forwardRef<StrudelPaneHandle, StrudelPaneProps>(function Str
             dg.gain.value = mutedRef.current ? 0 : volumeRef.current / 100
 
             const analyser = ctx.createAnalyser()
-            analyser.fftSize = 256
+            analyser.fftSize = 2048
             dg.connect(analyser)
             analyserRef.current = analyser
             onAnalyserReadyRef.current(analyser)

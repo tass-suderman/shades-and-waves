@@ -37,12 +37,18 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
   const [isRecording, setIsRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const recordedChunksRef = useRef<Blob[]>([])
+  const recordingAudioContextRef = useRef<AudioContext | null>(null)
+  const recordingAudioDestinationRef = useRef<MediaStreamAudioDestinationNode | null>(null)
+  const recordingAudioSourcesRef = useRef<MediaStreamAudioSourceNode[]>([])
   const { analyzer } = useStrudelAnalyzer()
   const { strudelAudioStream } = useStrudelAudioStream()
-  const { webcamStream, audioStream } = useMediaStreams()
+  const { webcamStream, audioStream, uploadedVideo, uploadedAudio } = useMediaStreams()
+  const uploadedAudioRecordingStream = uploadedAudio.recordingStream
 
   useWebGL(canvasRef, {
     shaderSource,
+    uploadedVideo: uploadedVideo.element as HTMLVideoElement | null,
+    uploadedAudioAnalyser: uploadedAudio.playing ? uploadedAudio.analyser : null,
     webcamStream,
     audioStream,
     isPlaying,
@@ -64,16 +70,15 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
     if (!canvas || typeof canvas.captureStream !== 'function') return
 
     const canvasStream = canvas.captureStream(30)
-
-    // Prefer Strudel audio; fall back to mic
-    const audioTracks =
-      strudelAudioStream && strudelAudioStream.getAudioTracks().length > 0
-      	? strudelAudioStream.getAudioTracks()
-      	: (audioStream?.getAudioTracks() ?? [])
+    const audioContext = new AudioContext()
+    const destination = audioContext.createMediaStreamDestination()
+    recordingAudioContextRef.current = audioContext
+    recordingAudioDestinationRef.current = destination
+    void audioContext.resume()
 
     const recordStream = new MediaStream([
       ...canvasStream.getVideoTracks(),
-      ...audioTracks,
+      ...destination.stream.getAudioTracks(),
     ])
 
     const mimeType = MediaRecorder.isTypeSupported('video/mp4')
@@ -89,6 +94,11 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
     }
 
     recorder.onstop = async () => {
+      recordingAudioSourcesRef.current.forEach(source => source.disconnect())
+      recordingAudioSourcesRef.current = []
+      recordingAudioDestinationRef.current = null
+      recordingAudioContextRef.current = null
+      void audioContext.close()
       const chunks = recordedChunksRef.current.splice(0)
       if (chunks.length === 0) return
       const blob = new Blob(chunks, { type: recorder.mimeType || mimeType })
@@ -104,19 +114,19 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
       const winFSA = window as Window & { showSaveFilePicker?: ShowSaveFilePicker }
 
       if (typeof winFSA.showSaveFilePicker === 'function') {
-      	try {
-      		const handle = await winFSA.showSaveFilePicker({
-      			suggestedName: filename,
-      			types: [{ description: 'Video file', accept: { [(recorder.mimeType || mimeType)]: [`.${ext}`] } }],
-      		})
-      		const writable = await handle.createWritable()
-      		await writable.write(blob)
-      		await writable.close()
-      		return
-      	} catch (err) {
-      		// AbortError means user cancelled – do nothing; anything else falls through to anchor download
-      		if ((err as DOMException).name === 'AbortError') return
-      	}
+        try {
+          const handle = await winFSA.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{ description: 'Video file', accept: { [(recorder.mimeType || mimeType)]: [`.${ext}`] } }],
+          })
+          const writable = await handle.createWritable()
+          await writable.write(blob)
+          await writable.close()
+          return
+        } catch (err) {
+          // AbortError means user cancelled – do nothing; anything else falls through to anchor download
+          if ((err as DOMException).name === 'AbortError') return
+        }
       }
 
       downloadBlob(blob, filename)
@@ -126,7 +136,24 @@ export default forwardRef<ShaderPaneHandle, ShaderPaneProps>(function ShaderPane
     recorder.start()
     mediaRecorderRef.current = recorder
     setIsRecording(true)
-  }, [audioStream, strudelAudioStream])
+  }, [])
+
+  // Keep the recorder's single audio track mixed from every active source.
+  // A stream uploaded after recording starts is connected on the next render.
+  useEffect(() => {
+    if (!isRecording) return
+    const destination = recordingAudioDestinationRef.current
+    const context = recordingAudioContextRef.current
+    if (!destination || !context) return
+    recordingAudioSourcesRef.current.forEach(source => source.disconnect())
+    recordingAudioSourcesRef.current = [audioStream, strudelAudioStream, uploadedAudioRecordingStream]
+      .filter((stream): stream is MediaStream => !!stream && stream.getAudioTracks().length > 0)
+      .map(stream => {
+        const source = context.createMediaStreamSource(stream)
+        source.connect(destination)
+        return source
+      })
+  }, [isRecording, audioStream, strudelAudioStream, uploadedAudioRecordingStream])
 
   const handleStopRecording = useCallback(() => {
     const recorder = mediaRecorderRef.current

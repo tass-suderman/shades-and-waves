@@ -1,6 +1,9 @@
+import { useUploadedMedia } from './useUploadedMedia'
 import { useState, useCallback, useRef, createContext, useContext } from 'react'
 
 export interface UseMediaStreamsReturn {
+  uploadedVideo: ReturnType<typeof useUploadedMedia>
+  uploadedAudio: ReturnType<typeof useUploadedMedia>
   webcamEnabled: boolean
   micEnabled: boolean
   webcamStream: MediaStream | null
@@ -12,6 +15,8 @@ export interface UseMediaStreamsReturn {
 const MediaStreamsContext = createContext<UseMediaStreamsReturn | null>(null)
 
 export const MediaStreamsProvider = ({children}: { children: React.ReactNode}) => {
+  const uploadedVideo = useUploadedMedia('video')
+  const uploadedAudio = useUploadedMedia('audio')
   const [webcamEnabled, setWebcamEnabled] = useState(false)
   const [micEnabled, setMicEnabled] = useState(false)
   const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null)
@@ -84,6 +89,8 @@ export const MediaStreamsProvider = ({children}: { children: React.ReactNode}) =
 
   return (
     <MediaStreamsContext.Provider value={{
+      uploadedVideo,
+      uploadedAudio,
       webcamEnabled,
       micEnabled,
       webcamStream,

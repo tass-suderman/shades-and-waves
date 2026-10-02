@@ -6,12 +6,15 @@ import { useMediaStreams } from '../../hooks/useMediaStreams';
 export default () => {
   const { analyzer } = useStrudelAnalyzer();
   const { 
+    uploadedVideo, uploadedAudio,
     webcamEnabled,
     micEnabled,
   } = useMediaStreams()
 
   return (
     <Box sx={{ display: 'contents' }}>
+      {uploadedVideo.element && <Chip label="iChannel3: Video" size="small" variant="outlined" />}
+      {uploadedAudio.element && <Chip label="iChannel4: Audio" size="small" variant="outlined" />}
       {webcamEnabled && (
         <Chip
           label="iChannel0: Webcam"

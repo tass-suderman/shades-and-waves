@@ -105,3 +105,38 @@ pnpm test           # or: npm test
 ## License
 
 [GNU Affero General Public License v3.0](LICENSE.md)
+
+### Uploaded video and audio
+
+Open **Media & uniforms** in the GLSL toolbar to upload local media. Video
+(`iChannel3`) plays muted and loops; audio (`iChannel4`) plays audibly and loops.
+Each has Play/Pause, Restart, and Remove controls. Files remain local, last only for the
+current browser session, and are not saved with shader code. Shader pause freezes
+rendering; pause the media separately to stop playback. Use browser-supported
+formats such as WebM/MP4 video and WAV/MP3 audio. If an uploaded M4A cannot play
+as a media element, the app first tries the browser Web Audio decoder (the
+same API Strudel uses), then converts the decoded result to WAV locally. If that
+also fails, a bundled converter runs in the browser. The latter downloads a
+roughly 31 MB decoder on first use and may take a moment for longer files.
+Recordings mix uploaded audio with active microphone and Strudel audio.
+
+Load **Audio Reactive Video** from Saved → Examples. It averages webcam and
+uploaded video when both are enabled, and averages active microphone, Strudel,
+and uploaded-audio frequency data. Edit the constants at the top of
+`public/examples/glsl/audio-reactive-video.glsl` to adjust uploaded-video zoom and
+pan, bass weighting and frequency range, audio gain, bloom, vignette, and shake.
+No video input produces black; no audio input displays the video without effects.
+The uploaded video preserves its aspect ratio with a centered cover crop.
+
+The uniform reference documents channel availability, video dimensions, and
+audio sample rates. Audio textures run from DC to Nyquist along X, with amplitude
+in the red component. Paused video retains its texture; paused uploaded audio is
+disabled in the shader.
+
+Run `npm run test:e2e` for the Playwright media integration test after installing
+Chromium with `npx playwright install chromium`. The tiny test fixtures contain
+a generated test pattern and a 100 Hz tone; no external media is needed.
+
+To use another installed Chromium executable for testing, set
+`PLAYWRIGHT_EXECUTABLE_PATH=/path/to/browser npm run test:e2e`. The test uses a
+small canvas so software rendering can keep up with real-time media playback.

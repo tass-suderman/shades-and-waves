@@ -68,8 +68,8 @@ export const ImmersiveTopBar = ({
 
   const shaderActions: PillActionButton[] = useMemo(() => [
     {
-      title: 'Available uniforms',
-      ariaLabel: 'Available uniforms',
+      title: 'Media & uniforms',
+      ariaLabel: 'Media & uniforms',
       onClick: () => editorRef.current?.toggleUniforms(),
       icon: <InfoOutlined fontSize="small" />
     },
